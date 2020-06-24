@@ -18,8 +18,21 @@ class Room extends Component {
     }
 
     updateState = (data) => {
+
+        let mySeatId = null;
+        let i = 0;
+        for (const seat of data.state.players) {
+            if (seat !== null) {
+                if (seat.username === this.props.username) {
+                    mySeatId = i;
+                }
+            }
+            i++;
+        }
+
         this.setState({
-            gameState: data.state
+            gameState: data.state,
+            mySeatId: mySeatId
         });
         console.log(this.state.gameState.players);
     }
@@ -46,6 +59,7 @@ class Room extends Component {
                 poker room
                 <Table 
                     gameState={this.state.gameState}
+                    mySeatId={this.state.mySeatId}
                     username={this.props.username}
                     sitPlayer={this.sitPlayer}
                     reserveSeat={this.reserveSeat}

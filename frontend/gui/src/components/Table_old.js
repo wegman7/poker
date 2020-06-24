@@ -10,8 +10,7 @@ class Table extends Component {
     state = {}
     
     onFinish = (values) => {
-        let seatId = this.props.gameState.players[this.props.username].seat_id;
-        this.props.sitPlayer(this.props.username, seatId, values.chips);
+        this.props.sitPlayer(this.props.username, this.props.mySeatId, values.chips);
     };
     
     onFinishFailed = errorInfo => {
@@ -46,29 +45,13 @@ class Table extends Component {
 
         const renderSeat = (seatId) => {
             if (this.props.gameState === undefined) { return; }
-
-            let myPlayer = this.props.gameState.players[this.props.username];
-            let player = undefined;
-
-            let isMe = false;
-            for (let loop_player in this.props.gameState.players) {
-                if (this.props.gameState.players[loop_player].seat_id === seatId) {
-                    player = this.props.gameState.players[loop_player];
-                }
-            }
-
-            if (myPlayer !== undefined) {
-                if (player !== undefined) {
-                    if (player.seat_id === myPlayer.seat_id) {
-                        isMe = true;
-                    }
-                }
-            }
+            
+            let player = this.props.gameState.players[seatId]
             
             // if this seat is empty
-            if (player === undefined) {
+            if (player === null) {
                 // if we are currently sitting at the table
-                if (myPlayer !== undefined) {
+                if (this.props.mySeatId) {
                     return (
                         <div>
                             empty
@@ -85,7 +68,8 @@ class Table extends Component {
             // if seat is reserved
             } else if (player.reserved === true) {
                 // if it's our seat
-                if (isMe) {
+                if (player.username === this.props.username) {
+                    // this.setState({ mySeat: seatId})
                     return (
                         <div>
                             <Form
@@ -136,7 +120,7 @@ class Table extends Component {
                     // return face down hold cards
                     return (
                         <div>
-                            {player.username}
+                            {this.props.gameState.players[seatId].username}
                             {renderCards(false, cards)}
                         </div>
                     )
@@ -146,15 +130,9 @@ class Table extends Component {
 
         const renderDealerChip = (seatId) => {
             if (this.props.gameState === undefined) { return; }
+            if (this.props.gameState.players[seatId] !== null) {
 
-            let player = undefined;
-            for (let loop_player in this.props.gameState.players) {
-                if (this.props.gameState.players[loop_player].seat_id === seatId) {
-                    player = this.props.gameState.players[loop_player];
-                }
-            }
-            if (player !== undefined) {
-                console.log(player);
+                let player = this.props.gameState.players[seatId];
 
                 // player is sitting out
                 if (!player.reserved && player.sitting_out) {

@@ -34,9 +34,15 @@ const raise = (makeAction, username, chips, chips_in_pot, current_bet, big_blind
 
 function ActionBar(props) {
     if (props.gameState === undefined) { return null; }
-    let myPlayer = props.gameState.players[props.username];
-    
-    if (myPlayer !== undefined) {
+    let myPlayer = null;
+    for (let player of props.gameState.players) {
+        if (player !== null) {
+            if (player.username === props.username) {
+                myPlayer = player;
+            }
+        }
+    }
+    if (myPlayer !== null) {
         if (myPlayer.spotlight) {
             return (
                 <div>

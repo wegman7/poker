@@ -154,7 +154,7 @@ class PokerConsumer(WebsocketConsumer):
         )
     
     def sendMessageToGroup(self, event):
-        print(event)
+        print('sending message to group...')
         self.send(text_data=event["text"])
     
     def sendMessage(self, data):
