@@ -28,6 +28,7 @@ class Message(models.Model):
 class Room(models.Model):
     participants = models.ManyToManyField(Contact)
     messages = models.ManyToManyField(Message, blank=True)
+    name = models.TextField()
 
     def participants_usernames(self):
         participants = []

@@ -38,5 +38,6 @@ class RoomSerializer(serializers.ModelSerializer):
         fields = (
             'id',
             'participants',
-            'participants_usernames'
+            'participants_usernames',
+            'name'
         )

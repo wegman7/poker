@@ -6,7 +6,7 @@ SMALL_BLIND = 1
 
 class State():
 
-    def __init__(self):
+    def __init__(self, createHandHistory):
         self.state = {
             'players': {},
             'spotlight': None,
@@ -18,6 +18,8 @@ class State():
             'current_bet': BIG_BLIND,
             'hand_in_action': False
         }
+
+        self.createHandHistory = createHandHistory
 
         self.convert_username_to_seat_id = {}
     
@@ -40,9 +42,9 @@ class State():
             'big_blind': False,
             'in_hand': False,
             'last_to_act': False,
-            'acting_dealer': False,
             'previous_player': None,
-            'next_player': None
+            'next_player': None,
+            'all_in': False
         }
     
     def reserveSeat(self, data):
@@ -195,6 +197,8 @@ class State():
     def newHand(self):
         print('starting new hand...')
 
+        self.createHandHistory('New hand')
+
         self.deck = Deck()
         
         # reset everything but dealer position
@@ -239,7 +243,9 @@ class State():
         else:
             number_of_cards = 1
         for _ in range(number_of_cards):
-            self.state['community_cards'].append(self.deck.dealCard())
+            card = self.deck.dealCard()
+            self.createHandHistory('Card dealt: ' + card['rank'] + card['suit'])
+            self.state['community_cards'].append(card)
         
         # determine first and last to act
         for username, player in self.state['players'].items():
@@ -289,11 +295,14 @@ class State():
         my_player['big_blind'] = False
         my_player['spotlight'] = False
 
+        self.createHandHistory(username + ' folds')
+
         players_sitting = self.state['players'].items()
         players_active = [player for player in players_sitting if player[1]['in_hand']]
 
         if len(players_active) < 2:
             winner_username = players_active[0][0]
+            self.createHandHistory(winner_username + ' wins ' + str(self.state['pot']))
             return self.endHand(winner_username)
 
         # if we're last to act, rotate last to act to the previous player
@@ -314,6 +323,8 @@ class State():
         username = data['username']
         my_player = self.state['players'][username]
 
+        self.createHandHistory(username + ' checks')
+
         if not my_player['last_to_act']:
             self.rotateSpotlight(username)
         # if current player is last to act, deal the next street
@@ -331,6 +342,13 @@ class State():
         username = data['username']
         my_player = self.state['players'][username]
 
+        # if player enters amount greater than his stack, he automatically goes all in
+        if raise_amount > my_player['chips']:
+            raise_amount = my_player['chips']
+            my_player['all_in'] = True
+
+        self.createHandHistory(username + ' calls')
+        
         difference = self.state['current_bet'] - my_player['chips_in_pot']
         my_player['chips'] -= difference
         my_player['chips_in_pot'] = self.state['current_bet']
@@ -354,6 +372,13 @@ class State():
         raise_amount = int(data['chipsInPot'])
         my_player = self.state['players'][username]
 
+        # if player enters amount greater than his stack, he automatically goes all in
+        if raise_amount > my_player['chips']:
+            raise_amount = my_player['chips']
+            my_player['all_in'] = True
+
+        self.createHandHistory(username + ' bets ' + str(raise_amount))
+
         self.state['current_bet'] = raise_amount
         difference = raise_amount - my_player['chips_in_pot']
         my_player['chips_in_pot'] += difference
@@ -375,9 +400,6 @@ class State():
                 break
             else:
                 previous_player = self.state['players'][previous_player['previous_player']]
-    
-    def evaluateHands(self):
-        pass
     
     def showdown(self):
         # convert cards to correct format for treys library
@@ -413,5 +435,5 @@ class State():
                     hand_class = evaluator.get_rank_class(score)
                     hand_class_string = evaluator.class_to_string(hand_class)
                     winner = username
-        print(winner, ' wins with ', hand_class_string)
+        self.createHandHistory(winner + ' wins ' + str(self.state['pot']) + ' with ' + hand_class_string)
         self.endHand(winner)

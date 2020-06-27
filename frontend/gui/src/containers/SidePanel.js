@@ -24,7 +24,7 @@ class SidePanel extends Component {
             })
                 .then(response => {
                     this.setState({
-                        'rooms': response.data.filter(room => room.participants_usernames.includes(this.props.username))
+                        'rooms': response.data
                     });
                 })
                 .catch(error => {
@@ -44,11 +44,7 @@ class SidePanel extends Component {
         if (this.state.rooms !== undefined) {
             listRooms = this.state.rooms.map(room => 
                 <Menu.Item key={room.id} onClick={() => this.rerouteToRoom(room.id)}>
-                    {room.participants_usernames.filter(
-                        participant_username => (participant_username !== this.props.username))
-                        .map(
-                            username => <span>{username} </span>
-                        )}
+                    {room.name}
                 </Menu.Item>
             );
         }

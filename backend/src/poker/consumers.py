@@ -103,7 +103,7 @@ class PokerConsumer(WebsocketConsumer):
     def connect(self):
         self.room_name = 'poker-' + self.scope['url_route']['kwargs']['room_name']
         if self.room_name not in self.state:
-            self.state[self.room_name] = State()
+            self.state[self.room_name] = State(self.createHandHistory)
         async_to_sync(self.channel_layer.group_add)(self.room_name, self.channel_name)
         print('connected')
         self.accept()
@@ -143,6 +143,38 @@ class PokerConsumer(WebsocketConsumer):
             'state': self.state[self.room_name].state
         }
         self.initializeMessageToGroup(content)
+    
+    def createHandHistory(self, data):
+        user = User.objects.get(username='Dealer')
+        contact = Contact.objects.get(user=user)
+        room_id = self.room_name.replace('poker-', '')
+        chat = Room.objects.get(id=room_id)
+        new_message = Message.objects.create(
+            contact = contact,
+            content = data
+        )
+        chat.messages.add(new_message)
+        new_message_json = json.dumps(self.messageToDict(new_message))
+        content = {
+            'type': 'new_message',
+            'message': new_message_json
+        }
+        # this sends the new message to the chat consumer
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_name.replace('poker-', 'chat-'),
+            {
+                "type": "sendMessageToGroup",
+                "text": json.dumps(content)
+            }
+        )
+    
+    def messageToDict(self, message):
+        return {
+            'id': message.id,
+            'author': message.contact.user.username,
+            'content': message.content,
+            'timestamp': str(message.timestamp)
+        }
     
     def initializeMessageToGroup(self, content):
         async_to_sync(self.channel_layer.group_send)(

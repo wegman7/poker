@@ -8,11 +8,11 @@ class Chat extends Component {
     state = {}
 
     componentDidMount() {
-        this.props.socket.addCallbacks(this.renderMessages, this.addResponseMessageHandler);
+        this.props.chatSocket.addCallbacks(this.renderMessages, this.addResponseMessageHandler);
     }
 
     componentDidUpdate() {
-        this.props.socket.addCallbacks(this.renderMessages, this.addResponseMessageHandler);
+        this.props.chatSocket.addCallbacks(this.renderMessages, this.addResponseMessageHandler);
         dropMessages();
     }
 
@@ -29,13 +29,14 @@ class Chat extends Component {
         }
     }
 
-    sendMessageHandler(message_text) {
-        const author = this.props.username;
+    sendMessageHandler = (message_text) => {
+        let author = this.props.username;
         const messageObject = {
             from: author,
             content: message_text
         }
-        this.props.socket.newMessage(messageObject);
+        console.log(messageObject);
+        this.props.chatSocket.newMessage(messageObject);
     }
 
     addResponseMessageHandler = (data) => {
@@ -52,7 +53,6 @@ class Chat extends Component {
     }
     
     render() {
-
         return (
             <div className="App">
                 <Widget
