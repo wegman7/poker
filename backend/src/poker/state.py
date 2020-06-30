@@ -131,15 +131,33 @@ class State():
                         player['small_blind'] = True
                         player['spotlight'] = True
                         player['last_to_act'] = False
-                        player['chips_in_pot'] = self.state['small_blind']
-                        player['chips'] = player['chips'] - player['chips_in_pot']
+
+                        # if player doesn't have enough to match blind, he must go all in
+                        if player['chips'] <= self.state['small_blind']:
+                            player['chips_in_pot'] = player['chips']
+                            player['chips'] = 0
+                            player['all_in'] = True
+                        else:
+                            player['chips_in_pot'] = self.state['small_blind']
+                            player['chips'] = player['chips'] - player['chips_in_pot']
                         self.state['pot'] += player['chips_in_pot']
                     else:
                         player['big_blind'] = True
                         player['spotlight'] = False
-                        player['last_to_act'] = True
-                        player['chips_in_pot'] = self.state['big_blind']
-                        player['chips'] = player['chips'] - player['chips_in_pot']
+                        # if player is all in from blinds, he will not be last to act (he won't act at all)
+                        if not player['all_in']:
+                            player['last_to_act'] = True
+                        else:
+                            self.state['players'][player['previous_player']]['last_to_act'] = True
+
+                        # if player doesn't have enough to match blind, he must go all in
+                        if player['chips'] <= self.state['big_blind']:
+                            player['chips_in_pot'] = player['chips']
+                            player['chips'] = 0
+                            player['all_in'] = True
+                        else:
+                            player['chips_in_pot'] = self.state['big_blind']
+                            player['chips'] = player['chips'] - player['chips_in_pot']
                         self.state['pot'] += player['chips_in_pot']
         
         if number_of_players > 2:
@@ -149,16 +167,29 @@ class State():
                     if player['dealer']:
                         next_player = self.state['players'][player['next_player']]
                         next_player['small_blind'] = True
-                        next_player['chips_in_pot'] = self.state['small_blind']
-                        next_player['chips'] = next_player['chips'] - next_player['chips_in_pot']
+
+                        # if player doesn't have enough to match blind, he must go all in
+                        if next_player['chips'] <= self.state['small_blind']:
+                            next_player['chips_in_pot'] = next_player['chips']
+                            next_player['chips'] = 0
+                            next_player['all_in'] = True
+                        else:
+                            next_player['chips_in_pot'] = self.state['small_blind']
+                            next_player['chips'] = next_player['chips'] - next_player['chips_in_pot']
                         self.state['pot'] += next_player['chips_in_pot']
-                        next_player['spotlight'] = False
 
                         next_next_player = self.state['players'][next_player['next_player']]
                         next_next_player['big_blind'] = True
                         next_next_player['last_to_act'] = True
-                        next_next_player['chips_in_pot'] = self.state['big_blind']
-                        next_next_player['chips'] = next_next_player['chips'] - next_next_player['chips_in_pot']
+
+                        # if player doesn't have enough to match blind, he must go all in
+                        if next_next_player['chips'] <= self.state['big_blind']:
+                            next_next_player['chips_in_pot'] = next_next_player['chips']
+                            next_next_player['chips'] = 0
+                            next_next_player['all_in'] = True
+                        else:
+                            next_next_player['chips_in_pot'] = self.state['big_blind']
+                            next_next_player['chips'] = next_next_player['chips'] - next_next_player['chips_in_pot']
                         self.state['pot'] += next_next_player['chips_in_pot']
 
                         next_next_next_player = self.state['players'][next_next_player['next_player']]
@@ -167,13 +198,45 @@ class State():
     def rotateSpotlight(self, username):
         player = self.state['players'][username]
         player['spotlight'] = False
-        next_player = self.state['players'][player['next_player']]
-        while True:
-            if not next_player['in_hand']:
-                next_player = self.state['players'][next_player['next_player']]
-            else:
-                next_player['spotlight'] = True
-                break
+        if player['last_to_act']:
+            self.dealStreet()
+        else:
+            next_player = self.state['players'][player['next_player']]
+            while True:
+                if not next_player['in_hand'] or next_player['all_in']:
+                    if next_player['last_to_act']:
+                        self.dealStreet()
+                        break
+                    else:
+                        next_player = self.state['players'][next_player['next_player']]
+                else:
+                    next_player['spotlight'] = True
+                    break
+    
+    def determineFirstAndLastToAct(self):
+        for username, player in self.state['players'].items():
+            if player['dealer']:
+                player['last_to_act'] = True
+                next_player = self.state['players'][player['next_player']]
+                previous_player = self.state['players'][player['previous_player']]
+                # determine first to act
+                while True:
+                    if next_player['in_hand'] and not next_player['all_in']:
+                        next_player['spotlight'] = True
+                        break
+                    else:
+                        next_player = self.state['players'][next_player['next_player']]
+                # determine last to act
+                while True:
+                    if player['in_hand'] and not next_player['all_in']:
+                        player['last_to_act'] = True
+                        break
+                    else:
+                        if previous_player['in_hand'] and not next_player['all_in']:
+                            previous_player['last_to_act'] = True
+                            break
+                        else:
+                            previous_player = self.state['players'][previous_player['previous_player']]
     
     def startGame(self):
         print('starting game...')
@@ -202,24 +265,27 @@ class State():
         self.deck = Deck()
         
         # reset everything but dealer position
+        number_of_players = 0
         for username, player in self.state['players'].items():
             player['spotlight'] = False
             player['small_blind'] = False
             player['big_blind'] = False
             player['last_to_act'] = False
-            if not player['sitting_out']:
-                player['hole_cards'] = []
-                player['hole_cards'].append(self.deck.dealCard())
-                player['hole_cards'].append(self.deck.dealCard())
-                player['in_hand'] = True
-        
-        number_of_players = 0
-        for username, player in self.state['players'].items():
+            player['all_in'] = False
+            player['hole_cards'] = []
+            if player['chips'] == 0:
+                player['sitting_out'] = True
             if not player['sitting_out']:
                 number_of_players += 1
         
         if number_of_players < 2:
             return None
+
+        for username, player in self.state['players'].items():
+            if not player['sitting_out']:
+                player['hole_cards'].append(self.deck.dealCard())
+                player['hole_cards'].append(self.deck.dealCard())
+                player['in_hand'] = True
         
         self.rotateDealerChip()
         self.postBlinds(number_of_players)
@@ -228,7 +294,7 @@ class State():
         self.state['street'] = 'preflop'
         self.state['hand_in_action'] = True
     
-    def dealStreet(self, street):
+    def dealStreet(self):
         # reset current bet
         self.state['current_bet'] = 0
         # reset 'chips_in_pot', spotlight and last to act
@@ -236,41 +302,31 @@ class State():
             player['chips_in_pot'] = 0
             player['spotlight'] = False
             player['last_to_act'] = False
-
-        self.state['street'] = street
-        if street == 'flop':
+        
+        if self.state['street'] == 'preflop':
             number_of_cards = 3
-        else:
+            self.state['street'] = 'flop'
+        elif self.state['street'] == 'flop':
             number_of_cards = 1
+            self.state['street'] = 'turn'
+        elif self.state['street'] == 'turn':
+            number_of_cards = 1
+            self.state['street'] = 'river'
+        else:
+            return self.showdown()
         for _ in range(number_of_cards):
             card = self.deck.dealCard()
             self.createHandHistory('Card dealt: ' + card['rank'] + card['suit'])
             self.state['community_cards'].append(card)
         
-        # determine first and last to act
-        for username, player in self.state['players'].items():
-            if player['dealer']:
-                player['last_to_act'] = True
-                next_player = self.state['players'][player['next_player']]
-                previous_player = self.state['players'][player['previous_player']]
-                # determine first to act
-                while True:
-                    if next_player['in_hand']:
-                        next_player['spotlight'] = True
-                        break
-                    else:
-                        next_player = self.state['players'][next_player['next_player']]
-                # determine last to act
-                while True:
-                    if player['in_hand']:
-                        player['last_to_act'] = True
-                        break
-                    else:
-                        if previous_player['in_hand']:
-                            previous_player['last_to_act'] = True
-                            break
-                        else:
-                            previous_player = self.state['players'][previous_player['previous_player']]
+
+        # if there are not at least two players with chips behind, we deal the rest of the cards
+        players_sitting = self.state['players'].values()
+        players_active = [player for player in players_sitting if not player['all_in']]
+        if len(players_active) < 2:
+            self.dealStreet()
+        else:
+            self.determineFirstAndLastToAct()
     
     def endHand(self, winner_username):
         winner = self.state['players'][winner_username]
@@ -305,19 +361,7 @@ class State():
             self.createHandHistory(winner_username + ' wins ' + str(self.state['pot']))
             return self.endHand(winner_username)
 
-        # if we're last to act, rotate last to act to the previous player
-        if not my_player['last_to_act']:
-            self.rotateSpotlight(username)
-        # if current player is last to act, deal the next street
-        else:
-            if self.state['street'] == 'preflop':
-                self.dealStreet('flop')
-            elif self.state['street'] == 'flop':
-                self.dealStreet('turn')
-            elif self.state['street'] == 'turn':
-                self.dealStreet('river')
-            else:
-                self.showdown()
+        self.rotateSpotlight(username)
     
     def check(self, data):
         username = data['username']
@@ -325,47 +369,26 @@ class State():
 
         self.createHandHistory(username + ' checks')
 
-        if not my_player['last_to_act']:
-            self.rotateSpotlight(username)
-        # if current player is last to act, deal the next street
-        else:
-            if self.state['street'] == 'preflop':
-                self.dealStreet('flop')
-            elif self.state['street'] == 'flop':
-                self.dealStreet('turn')
-            elif self.state['street'] == 'turn':
-                self.dealStreet('river')
-            else:
-                self.showdown()
+        self.rotateSpotlight(username)
     
     def call(self, data):
         username = data['username']
         my_player = self.state['players'][username]
 
         # if player enters amount greater than his stack, he automatically goes all in
-        if raise_amount > my_player['chips']:
-            raise_amount = my_player['chips']
+        if self.state['current_bet'] >= my_player['chips'] + my_player['chips_in_pot']:
+            my_player['chips_in_pot'] += my_player['chips']
+            my_player['chips'] = 0
             my_player['all_in'] = True
 
         self.createHandHistory(username + ' calls')
-        
+
         difference = self.state['current_bet'] - my_player['chips_in_pot']
         my_player['chips'] -= difference
         my_player['chips_in_pot'] = self.state['current_bet']
         self.state['pot'] += difference
 
-        if not my_player['last_to_act']:
-            self.rotateSpotlight(username)
-        # if current player is last to act, deal the next street
-        else:
-            if self.state['street'] == 'preflop':
-                self.dealStreet('flop')
-            elif self.state['street'] == 'flop':
-                self.dealStreet('turn')
-            elif self.state['street'] == 'turn':
-                self.dealStreet('river')
-            else:
-                self.showdown()
+        self.rotateSpotlight(username)
     
     def bet(self, data):
         username = data['username']
@@ -373,8 +396,8 @@ class State():
         my_player = self.state['players'][username]
 
         # if player enters amount greater than his stack, he automatically goes all in
-        if raise_amount > my_player['chips']:
-            raise_amount = my_player['chips']
+        if raise_amount >= my_player['chips']:
+            raise_amount = my_player['chips'] + my_player['chips_in_pot']
             my_player['all_in'] = True
 
         self.createHandHistory(username + ' bets ' + str(raise_amount))
@@ -386,12 +409,9 @@ class State():
         self.state['current_bet'] = raise_amount
         self.state['pot'] += difference
 
-        # rotate spotlight and determine who's last to act
-        self.rotateSpotlight(username)
-
         # first we need to set the current last_to_act to false (instead of searching, setting all to false works fine)
-        for username, player in self.state['players'].items():
-            player['last_to_act'] = False
+        for the_username, the_player in self.state['players'].items():
+            the_player['last_to_act'] = False
         
         previous_player = self.state['players'][my_player['previous_player']]
         while True:
@@ -400,6 +420,9 @@ class State():
                 break
             else:
                 previous_player = self.state['players'][previous_player['previous_player']]
+
+        # rotate spotlight and determine who's last to act
+        self.rotateSpotlight(username)
     
     def showdown(self):
         # convert cards to correct format for treys library
