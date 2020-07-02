@@ -15,6 +15,7 @@ class State():
             'big_blind': BIG_BLIND,
             'small_blind': SMALL_BLIND,
             'pot': 0,
+            'side_pot': {},
             'current_bet': BIG_BLIND,
             'hand_in_action': False
         }
@@ -117,7 +118,7 @@ class State():
                 next_player = self.state['players'][player['next_player']]
                 while True:
                     if next_player['sitting_out']:
-                        next_player = next_player['next_player']
+                        next_player = self.state['players'][next_player['next_player']]
                     else:
                         next_player['dealer'] = True
                         break
@@ -295,6 +296,31 @@ class State():
         self.state['hand_in_action'] = True
     
     def dealStreet(self):
+        print('dealing new street')
+        print('main pot ', self.state['pot'])
+        print('current bet ', self.state['current_bet'])
+        for username, player in self.state['players'].items():
+            print(username, player['chips_in_pot'])
+        
+        # create side pot for any player who is still in the hand and has less than the current bet in the pot
+        players_at_table = self.state['players'].items()
+        players_in_hand = [(username, player) for (username, player) in players_at_table if player['in_hand']]
+        for username, player in players_in_hand:
+            side_pot = 0
+            # create side pot for player if he isn't matching the bet. if there's already a side pot, we skip this
+            if player['chips_in_pot'] < self.state['current_bet'] and username not in self.state['side_pot']:
+                # iterate through each player sitting and put as much as we match into side pot
+                for other_player in self.state['players'].values():
+                    if not other_player['sitting_out']:
+                        # if the other player has us covered, they only match our chips in pot
+                        if other_player['chips_in_pot'] > player['chips_in_pot']:
+                            side_pot += player['chips_in_pot']
+                        # otherwise, we take as much as they have in the pot
+                        else:
+                            side_pot += other_player['chips_in_pot']
+                self.state['side_pot'][username] = side_pot
+        print(self.state['side_pot'])
+        
         # reset current bet
         self.state['current_bet'] = 0
         # reset 'chips_in_pot', spotlight and last to act
@@ -322,7 +348,7 @@ class State():
 
         # if there are not at least two players with chips behind, we deal the rest of the cards
         players_sitting = self.state['players'].values()
-        players_active = [player for player in players_sitting if not player['all_in']]
+        players_active = [player for player in players_sitting if not player['all_in'] and player['in_hand']]
         if len(players_active) < 2:
             self.dealStreet()
         else:
@@ -375,18 +401,25 @@ class State():
         username = data['username']
         my_player = self.state['players'][username]
 
+        print('inside call')
+        print('chips ', my_player['chips'])
+        print('chips in pot ', my_player['chips_in_pot'])
+        print('current bet', self.state['current_bet'])
+        print('pot ', self.state['pot'])
+
         # if player enters amount greater than his stack, he automatically goes all in
         if self.state['current_bet'] >= my_player['chips'] + my_player['chips_in_pot']:
+            self.state['pot'] += my_player['chips']
             my_player['chips_in_pot'] += my_player['chips']
             my_player['chips'] = 0
             my_player['all_in'] = True
+        else:
+            difference = self.state['current_bet'] - my_player['chips_in_pot']
+            my_player['chips'] -= difference
+            my_player['chips_in_pot'] = self.state['current_bet']
+            self.state['pot'] += difference
 
         self.createHandHistory(username + ' calls')
-
-        difference = self.state['current_bet'] - my_player['chips_in_pot']
-        my_player['chips'] -= difference
-        my_player['chips_in_pot'] = self.state['current_bet']
-        self.state['pot'] += difference
 
         self.rotateSpotlight(username)
     
@@ -440,7 +473,9 @@ class State():
             Card.new(fifth_card_board)
         ]
 
-        # do the same thing for each actice player
+        
+
+        # do the same thing for each active player
         evaluator = Evaluator()
         winning_hand = 7463
         for username, player in self.state['players'].items():
