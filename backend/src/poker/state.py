@@ -17,7 +17,8 @@ class State():
             'pot': 0,
             'side_pot': {},
             'current_bet': BIG_BLIND,
-            'hand_in_action': False
+            'hand_in_action': False,
+            'previous_street_pot': 0
         }
 
         self.createHandHistory = createHandHistory
@@ -297,10 +298,6 @@ class State():
     
     def dealStreet(self):
         print('dealing new street')
-        print('main pot ', self.state['pot'])
-        print('current bet ', self.state['current_bet'])
-        for username, player in self.state['players'].items():
-            print(username, player['chips_in_pot'])
         
         # create side pot for any player who is still in the hand and has less than the current bet in the pot
         players_at_table = self.state['players'].items()
@@ -308,7 +305,7 @@ class State():
         for username, player in players_in_hand:
             side_pot = 0
             # create side pot for player if he isn't matching the bet. if there's already a side pot, we skip this
-            if player['chips_in_pot'] < self.state['current_bet'] and username not in self.state['side_pot']:
+            if player['chips'] == 0 and username not in self.state['side_pot']:
                 # iterate through each player sitting and put as much as we match into side pot
                 for other_player in self.state['players'].values():
                     if not other_player['sitting_out']:
@@ -318,11 +315,13 @@ class State():
                         # otherwise, we take as much as they have in the pot
                         else:
                             side_pot += other_player['chips_in_pot']
+                # need to add whatever was already in the pot before this round of betting
+                side_pot += self.state['previous_street_pot']
                 self.state['side_pot'][username] = side_pot
-        print(self.state['side_pot'])
         
         # reset current bet
         self.state['current_bet'] = 0
+        self.state['previous_street_pot'] = self.state['pot']
         # reset 'chips_in_pot', spotlight and last to act
         for username, player in self.state['players'].items():
             player['chips_in_pot'] = 0
@@ -362,6 +361,7 @@ class State():
         winner['hole_cards'] = []
         # reset pot
         self.state['pot'] = 0
+        self.state['previous_street_pot'] = 0
         self.state['hand_in_action'] = False
         self.state['community_cards'] = []
 
@@ -400,12 +400,6 @@ class State():
     def call(self, data):
         username = data['username']
         my_player = self.state['players'][username]
-
-        print('inside call')
-        print('chips ', my_player['chips'])
-        print('chips in pot ', my_player['chips_in_pot'])
-        print('current bet', self.state['current_bet'])
-        print('pot ', self.state['pot'])
 
         # if player enters amount greater than his stack, he automatically goes all in
         if self.state['current_bet'] >= my_player['chips'] + my_player['chips_in_pot']:
@@ -473,7 +467,7 @@ class State():
             Card.new(fifth_card_board)
         ]
 
-        
+        results = {}
 
         # do the same thing for each active player
         evaluator = Evaluator()
@@ -485,13 +479,62 @@ class State():
                 second_card = player['hole_cards'][1]['rank'] + player['hole_cards'][1]['suit'].lower()
 
                 hand = [Card.new(first_card), Card.new(second_card)]
-                score = evaluator.evaluate(board, hand)
+                player_result = {}
+                player_result['score'] = evaluator.evaluate(board, hand)
+                player_result['hand_class'] = evaluator.get_rank_class(player_result['score'])
+                player_result['hand_class_string'] = evaluator.class_to_string(player_result['hand_class'])
 
-                if score < winning_hand:
-                    winning_hand = score
+                results[username] = player_result
+        results = {
+            'wegman7': {'score': 4426, 'hand_class': 8, 'hand_class_string': 'Pair'},
+            'newuser': {'score': 4427, 'hand_class': 8, 'hand_class_string': 'Pair'},
+            'newuser2': {'score': 4426, 'hand_class': 8, 'hand_class_string': 'Pair'},
+        }
+        
+        # we're going to loop through, finding the winner and paying out any side bets. we keep doing this until the winner does not have a side bet
+        while True:
+            # find the winner(s)
+            winning_hand = min(results.values(), key = lambda value: value['score'])
+            winners = {k for k, v in results.items() if v == winning_hand}
+            print('winners ', winners)
+            print('side pots ', self.state['side_pot'])
 
-                    hand_class = evaluator.get_rank_class(score)
-                    hand_class_string = evaluator.class_to_string(hand_class)
-                    winner = username
-        self.createHandHistory(winner + ' wins ' + str(self.state['pot']) + ' with ' + hand_class_string)
+
+            # find minimum side pot of all winners
+            if len(self.state['side_pot']) > 0:
+                if len(set.intersection(winners, set(self.state['side_pot']))) > 0:
+                    print('inside one')
+                    minimum_side_pot_of_winners_username = min({k: v for k, v in self.state['side_pot'].items() if k in winners}, key=lambda item: self.state['side_pot'][item])
+                    minimum_side_pot_of_winners = self.state['side_pot'][minimum_side_pot_of_winners_username]
+                    print(minimum_side_pot_of_winners_username)
+                else:
+                    print('inside two')
+                    minimum_side_pot_of_winners = self.state['pot']
+                # split the pot if necessary
+                payout = minimum_side_pot_of_winners/len(winners)
+                print('payout ', payout)
+                for winner in winners:
+                    self.createHandHistory(winner + ' wins side pot of ' + str(payout) + ' with ' + results[winner]['hand_class_string'])
+                    self.state['players'][winner]['chips'] += payout
+                    self.state['pot'] -= payout
+                # subract the side pot that is currently paying out from all other side pots. when a sidepot reaches 0, remove it
+                for side_pot in dict(self.state['side_pot']):
+                    self.state['side_pot'][side_pot] -= minimum_side_pot_of_winners
+                    if self.state['side_pot'][side_pot] <= 0:
+                        self.state['side_pot'].pop(side_pot)
+                results.pop(minimum_side_pot_of_winners_username)
+                # self.state['side_pot'].pop(minimum_side_pot_of_winners_username)
+                winning_hand = 7463
+                if len(self.state['side_pot']) < 1:
+                    break
+            else:
+                # split the pot if necessary
+                payout = self.state['pot']/len(winners)
+                for winner in winners:
+                    self.createHandHistory(winner + ' wins side pot of ' + str(payout) + ' with ' + results[winner]['hand_class_string'])
+                    self.state['players'][winner]['chips'] += payout
+                    self.state['pot'] -= payout
+                self.createHandHistory(winner + ' wins pot of ' + str(self.state['pot']) + ' with ' + results[winner]['hand_class_string'])
+                break
+        
         self.endHand(winner)
