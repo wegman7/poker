@@ -329,8 +329,6 @@ class State():
     def newHand(self):
         print('starting new hand...')
 
-        self.createHandHistory('New hand')
-
         self.deck = Deck()
         
         # reset everything but dealer position
@@ -349,6 +347,8 @@ class State():
         
         if number_of_players < 2:
             return None
+        
+        self.createHandHistory('New hand')
 
         for username, player in self.state['players'].items():
             if not player['sitting_out']:

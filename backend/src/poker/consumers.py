@@ -24,7 +24,7 @@ class ChatConsumer(WebsocketConsumer):
     def retreiveMessages(self, data):
         room_id = data['room_id']
         chat = Room.objects.get(id=room_id)
-        messages = chat.messages.all()
+        messages = reversed(chat.messages.all().order_by('-timestamp')[:100])
         data = []
         for message in messages:
             data.append({
