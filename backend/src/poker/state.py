@@ -46,7 +46,12 @@ class State():
             'last_to_act': False,
             'previous_player': None,
             'next_player': None,
-            'all_in': False
+            'all_in': False,
+            'reserved': False,
+            'sit_in_after_hand': False,
+            'sit_out_after_hand': False,
+            'stand_up_after_hand': False,
+            'add_chips_after_hand': False
         }
     
     def reserveSeat(self, data):
@@ -81,6 +86,68 @@ class State():
                 self.startGame()
                 self.orderPlayers()
                 self.newHand()
+    
+    def makeSitAction(self):
+        for username, player in dict(self.state['players']).items():
+            if player['sit_out_after_hand']:
+                player['sitting_out'] = True
+                player['sit_out_after_hand'] = False
+            if player['sit_in_after_hand']:
+                player['sitting_out'] = False
+                player['sit_in_after_hand'] = False
+            if player['stand_up_after_hand']:
+                self.state['players'].pop(username)
+            if player['add_chips_after_hand'] > 0:
+                player['chips'] += player['add_chips_after_hand']
+                player['add_chips_after_hand'] = 0
+
+    
+    def sitIn(self, data):
+        username = data['username']
+        player = self.state['players'][username]
+        if self.state['hand_in_action']:
+            if player['sit_in_after_hand'] == False:
+                player['sit_in_after_hand'] = True
+            else:
+                player['sit_in_after_hand'] = False
+        else:
+            player['sitting_out'] = False
+        number_of_players = len({k:v for k, v in self.state['players'].items() if not v['sitting_out']})
+        if number_of_players > 1:
+            self.startGame()
+            self.orderPlayers()
+            self.newHand()
+
+    def sitOut(self, data):
+        username = data['username']
+        player = self.state['players'][username]
+        if self.state['hand_in_action']:
+            if player['sit_out_after_hand'] == False:
+                player['sit_out_after_hand'] = True
+            else:
+                player['sit_out_after_hand'] = False
+        else:
+            player['sitting_out'] = True
+
+    def standUp(self, data):
+        username = data['username']
+        player = self.state['players'][username]
+        if self.state['hand_in_action']:
+            if player['stand_up_after_hand'] == False:
+                player['stand_up_after_hand'] = True
+            else:
+                player['stand_up_after_hand'] = False
+        else:
+            self.state['players'].pop(username)
+
+    def addChips(self, data):
+        username = data['username']
+        chips = data['chips']
+        player = self.state['players'][username]
+        if self.state['hand_in_action']:
+            player['add_chips_after_hand'] = chips
+        else:
+            player['chips'] += int(chips)
     
     def orderPlayers(self):
         
@@ -365,6 +432,7 @@ class State():
         self.state['hand_in_action'] = False
         self.state['community_cards'] = []
 
+        self.makeSitAction()
         self.newHand()
     
     def fold(self, data):
@@ -474,6 +542,7 @@ class State():
         winning_hand = 7463
         for username, player in self.state['players'].items():
             if player['in_hand']:
+                print(username, player)
 
                 first_card = player['hole_cards'][0]['rank'] + player['hole_cards'][0]['suit'].lower()
                 second_card = player['hole_cards'][1]['rank'] + player['hole_cards'][1]['suit'].lower()
@@ -485,11 +554,6 @@ class State():
                 player_result['hand_class_string'] = evaluator.class_to_string(player_result['hand_class'])
 
                 results[username] = player_result
-        results = {
-            'wegman7': {'score': 4426, 'hand_class': 8, 'hand_class_string': 'Pair'},
-            'newuser': {'score': 4427, 'hand_class': 8, 'hand_class_string': 'Pair'},
-            'newuser2': {'score': 4426, 'hand_class': 8, 'hand_class_string': 'Pair'},
-        }
         
         # we're going to loop through, finding the winner and paying out any side bets. we keep doing this until the winner does not have a side bet
         while True:
@@ -534,7 +598,6 @@ class State():
                     self.createHandHistory(winner + ' wins side pot of ' + str(payout) + ' with ' + results[winner]['hand_class_string'])
                     self.state['players'][winner]['chips'] += payout
                     self.state['pot'] -= payout
-                self.createHandHistory(winner + ' wins pot of ' + str(self.state['pot']) + ' with ' + results[winner]['hand_class_string'])
                 break
         
         self.endHand(winner)

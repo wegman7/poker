@@ -159,6 +159,23 @@ export class WebSocketPoker {
         this.sendMessage(message);
     }
 
+    addChips = (action, username, chips) => {
+        let message = {
+            command: action,
+            username: username,
+            chips: chips
+        }
+        this.sendMessage(message);
+    }
+
+    makeSitAction = (action, username) => {
+        let message = {
+            command: action,
+            username: username
+        }
+        this.sendMessage(message);
+    }
+
     sendMessage = (data) => {
         this.socket_ref.send(JSON.stringify(data));
     }

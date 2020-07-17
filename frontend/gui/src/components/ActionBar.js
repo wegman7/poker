@@ -20,11 +20,11 @@ const raise = (makeAction, username, chips, chips_in_pot, current_bet, big_blind
     console.log('raise', event.target.chips.value);
     let raise_amount = event.target.chips.value;
     if (current_bet > 0) {
-        if (raise_amount < current_bet * 2) {
+        if (raise_amount < current_bet * 2 && raise_amount + chips_in_pot < chips) {
             alert('Invalid raise!');
             return;
     }}
-    if (raise_amount < big_blind) {
+    if (raise_amount < big_blind && raise_amount + chips_in_pot < chips) {
         alert('Invalid bet!');
         return;
     }
@@ -40,7 +40,6 @@ function ActionBar(props) {
         if (myPlayer.spotlight) {
             return (
                 <div>
-                    action bar!
                     {
                         myPlayer.chips_in_pot === props.gameState.current_bet
                         ?

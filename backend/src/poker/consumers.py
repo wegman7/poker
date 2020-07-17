@@ -120,6 +120,22 @@ class PokerConsumer(WebsocketConsumer):
         self.state[self.room_name].addPlayer(data)
         self.returnState(None)
     
+    def sitIn(self, data):
+        self.state[self.room_name].sitIn(data)
+        self.returnState(None)
+
+    def sitOut(self, data):
+        self.state[self.room_name].sitOut(data)
+        self.returnState(None)
+
+    def standUp(self, data):
+        self.state[self.room_name].standUp(data)
+        self.returnState(None)
+
+    def addChips(self, data):
+        self.state[self.room_name].addChips(data)
+        self.returnState(None)
+    
     def fold(self, data):
         self.state[self.room_name].fold(data)
         self.returnState(None)
@@ -205,6 +221,10 @@ class PokerConsumer(WebsocketConsumer):
         'fetch_state': returnState,
         'reserve': reserveSeat,
         'sit': addPlayer,
+        'sit_in': sitIn,
+        'sit_out': sitOut,
+        'stand_up': standUp,
+        'add_chips': addChips,
         'fold': fold,
         'check': check,
         'call': call,

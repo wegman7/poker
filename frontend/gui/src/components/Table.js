@@ -1,8 +1,9 @@
 import React, { Component } from 'react';
 import { Row, Col, Form, Button, Input } from 'antd';
 import { Card } from 'react-casino';
+import mp3_file from './insight.mp3';
 
-const style = { backgroundColor: 'white', padding: '30px 0', textAlign: 'center', position: 'relative'};
+const style = { backgroundColor: 'lightGrey', padding: '30px 0', textAlign: 'center', position: 'relative', borderRadius: '50px'};
 const communityCardsStyle = { height: '70px', width: '45px', paddingLeft: '3px' }
 
 class Table extends Component {
@@ -155,6 +156,14 @@ class Table extends Component {
             }
             if (player !== undefined) {
                 console.log(player);
+                let playerStyle = {};
+                if (player.spotlight) {
+                    playerStyle = { backgroundColor: 'red', borderRadius: '50px', width: '70%', margin: 'auto' }
+                    if (player.username === this.props.username) {
+                        let audio = new Audio(mp3_file);
+                        audio.play();
+                    }
+                }
 
                 // player is sitting out
                 if (!player.reserved && player.sitting_out) {
@@ -170,7 +179,7 @@ class Table extends Component {
                 // determine dealer chip and blinds
                 if (player.dealer && player.small_blind) {
                     return (
-                        <div>
+                        <div style={playerStyle}>
                             dealer and small blind <br />
                             chips: {player.chips} <br />
                             {
@@ -184,7 +193,7 @@ class Table extends Component {
                     )
                 } else if (player.dealer) {
                     return (
-                        <div>
+                        <div style={playerStyle}>
                             dealer <br />
                             chips: {player.chips} <br />
                             {
@@ -198,7 +207,7 @@ class Table extends Component {
                     )
                 } else if (player.small_blind) {
                     return (
-                        <div>
+                        <div style={playerStyle}>
                             small blind <br />
                             chips: {player.chips} <br />
                             {
@@ -212,7 +221,7 @@ class Table extends Component {
                     )
                 } else if (player.big_blind) {
                     return (
-                        <div>
+                        <div style={playerStyle}>
                             big blind <br />
                             chips: {player.chips} <br />
                             {
@@ -226,7 +235,7 @@ class Table extends Component {
                     )
                 } else {
                     return (
-                        <div>
+                        <div style={playerStyle}>
                             chips: {player.chips} <br />
                             {
                                 player.in_hand
@@ -319,7 +328,7 @@ class Table extends Component {
                     </Col>
                     {/* community cards */}
                     <Col span={12}>
-                        <div style={{ backgroundColor: 'white', padding: '30px 60px', position: 'relative'}}>
+                        <div style={{ padding: '30px 60px', position: 'relative'}}>
                             {renderCommunityCards()}
                         </div>
                     </Col>
