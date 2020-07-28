@@ -52,23 +52,45 @@ class Room extends Component {
     }
 
     render() {
+
+        // this ACTUALLY keeps correct borders, but does not keep aspect ratios
+        // const style = {
+        //     position: 'fixed',
+        //     top: '100px',
+        //     bottom: '100px',
+        //     left: '100px',
+        //     right: '100px',
+
+        //     /* Size limit */
+        //     // maxWidth: '100%',
+        //     // maxHeight: '100%',
+
+        //     /* Other required settings */
+        //     margin: 'auto',
+        //     overflow: 'auto',
+        //     backgroundColor: 'purple'
+        // }
+
         return (
             <div>
-                <Table
-                    gameState={this.state.gameState}
-                    username={this.props.username}
-                    sitPlayer={this.sitPlayer}
-                    reserveSeat={this.reserveSeat}
-                />
-                <Row gutter={600}>
-                    <Col className="gutter-row" span={30}>
+                <div>
+                    <Table
+                        gameState={this.state.gameState}
+                        username={this.props.username}
+                        sitPlayer={this.sitPlayer}
+                        reserveSeat={this.reserveSeat}
+                    />
+                </div>
+                <Row gutter={40}>
+                    <Col className="gutter-row" span={8}>
                         <ActionBar
                             gameState={this.state.gameState}
                             username={this.props.username}
                             makeAction={this.makeAction}
                         />
                     </Col>
-                    <Col className="gutter-row" span={30}>
+                    <Col className="gutter-row" span={8} />
+                    <Col className="gutter-row" span={8}>
                         <SitBar
                             gameState={this.state.gameState}
                             username={this.props.username}

@@ -14,11 +14,11 @@ class State():
             'community_cards': [],
             'big_blind': BIG_BLIND,
             'small_blind': SMALL_BLIND,
-            'pot': 0,
+            'pot': 0.0,
             'side_pot': {},
             'current_bet': BIG_BLIND,
             'hand_in_action': False,
-            'previous_street_pot': 0
+            'previous_street_pot': 0.0
         }
 
         self.createHandHistory = createHandHistory
@@ -51,7 +51,7 @@ class State():
             'sit_in_after_hand': False,
             'sit_out_after_hand': False,
             'stand_up_after_hand': False,
-            'add_chips_after_hand': False
+            'add_chips_after_hand': 0
         }
     
     def reserveSeat(self, data):
@@ -70,7 +70,7 @@ class State():
 
         username = data['username']
         seat_id = data['seatId']
-        chips = int(data['chips'])
+        chips = float(data['chips'])
         self.state['players'][username] = self.initializePlayer(username, seat_id, chips)
 
         # if there are two or more players, start the game
@@ -99,6 +99,7 @@ class State():
                 self.state['players'].pop(username)
             if player['add_chips_after_hand'] > 0:
                 player['chips'] += player['add_chips_after_hand']
+                self.createHandHistory(username + ' added ' + str(player['add_chips_after_hand']))
                 player['add_chips_after_hand'] = 0
 
     
@@ -142,12 +143,14 @@ class State():
 
     def addChips(self, data):
         username = data['username']
-        chips = data['chips']
+        chips = float(data['chips'])
         player = self.state['players'][username]
         if self.state['hand_in_action']:
             player['add_chips_after_hand'] = chips
+            self.createHandHistory(username + ' has requested ' + str(chips) + ', and will be added after the hand')
         else:
-            player['chips'] += int(chips)
+            player['chips'] += float(chips)
+            self.createHandHistory(username + ' has added ' + str(chips))
     
     def orderPlayers(self):
         
@@ -487,7 +490,7 @@ class State():
     
     def bet(self, data):
         username = data['username']
-        raise_amount = int(data['chipsInPot'])
+        raise_amount = float(data['chipsInPot'])
         my_player = self.state['players'][username]
 
         # if player enters amount greater than his stack, he automatically goes all in
@@ -567,16 +570,13 @@ class State():
             # find minimum side pot of all winners
             if len(self.state['side_pot']) > 0:
                 if len(set.intersection(winners, set(self.state['side_pot']))) > 0:
-                    print('inside one')
                     minimum_side_pot_of_winners_username = min({k: v for k, v in self.state['side_pot'].items() if k in winners}, key=lambda item: self.state['side_pot'][item])
                     minimum_side_pot_of_winners = self.state['side_pot'][minimum_side_pot_of_winners_username]
                     print(minimum_side_pot_of_winners_username)
                 else:
-                    print('inside two')
                     minimum_side_pot_of_winners = self.state['pot']
                 # split the pot if necessary
                 payout = minimum_side_pot_of_winners/len(winners)
-                print('payout ', payout)
                 for winner in winners:
                     self.createHandHistory(winner + ' wins side pot of ' + str(payout) + ' with ' + results[winner]['hand_class_string'])
                     self.state['players'][winner]['chips'] += payout
@@ -586,7 +586,10 @@ class State():
                     self.state['side_pot'][side_pot] -= minimum_side_pot_of_winners
                     if self.state['side_pot'][side_pot] <= 0:
                         self.state['side_pot'].pop(side_pot)
-                results.pop(minimum_side_pot_of_winners_username)
+                try:
+                    results.pop(minimum_side_pot_of_winners_username)
+                except:
+                    pass
                 # self.state['side_pot'].pop(minimum_side_pot_of_winners_username)
                 winning_hand = 7463
                 if len(self.state['side_pot']) < 1:
