@@ -1,12 +1,13 @@
+import time
 from treys import Card, Evaluator
 from .deck import Deck
 
-BIG_BLIND = 2
-SMALL_BLIND = 1
+BIG_BLIND = .5
+SMALL_BLIND = .25
 
 class State():
 
-    def __init__(self, createHandHistory):
+    def __init__(self, createHandHistory, returnState):
         self.state = {
             'players': {},
             'spotlight': None,
@@ -18,10 +19,11 @@ class State():
             'side_pot': {},
             'current_bet': BIG_BLIND,
             'hand_in_action': False,
-            'previous_street_pot': 0.0
+            'previous_street_pot': 0.0,
+            'show_hands': False
         }
 
-        self.createHandHistory = createHandHistory
+        self.createHandHistory, self.returnState = createHandHistory, returnState
 
         self.convert_username_to_seat_id = {}
     
@@ -545,7 +547,6 @@ class State():
         winning_hand = 7463
         for username, player in self.state['players'].items():
             if player['in_hand']:
-                print(username, player)
 
                 first_card = player['hole_cards'][0]['rank'] + player['hole_cards'][0]['suit'].lower()
                 second_card = player['hole_cards'][1]['rank'] + player['hole_cards'][1]['suit'].lower()
@@ -602,5 +603,13 @@ class State():
                     self.state['players'][winner]['chips'] += payout
                     self.state['pot'] -= payout
                 break
+        
+        # # display the hands on the front end for 5 seconds
+        # self.state['show_hands'] = True
+        # for username, player in {k: v for k, v in self.state['players'].items() if not self.state['players'][k]['sitting_out']}.items():
+        #     player['spotlight'] = False
+        # self.returnState(None)
+        # time.sleep(10)
+        # self.state['show_hands'] = False
         
         self.endHand(winner)

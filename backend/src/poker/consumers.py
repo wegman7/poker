@@ -98,12 +98,12 @@ TIME_BANK = 30
 class PokerConsumer(WebsocketConsumer):
     groups = ["broadcast"]
 
-    state = {}        
+    state = {}
 
     def connect(self):
         self.room_name = 'poker-' + self.scope['url_route']['kwargs']['room_name']
         if self.room_name not in self.state:
-            self.state[self.room_name] = State(self.createHandHistory)
+            self.state[self.room_name] = State(self.createHandHistory, self.returnState)
         async_to_sync(self.channel_layer.group_add)(self.room_name, self.channel_name)
         print('connected')
         self.accept()
@@ -154,6 +154,7 @@ class PokerConsumer(WebsocketConsumer):
 
     def returnState(self, data):
         print('sending state...')
+        print('SENDING THE STATE!!!!!')
         content = {
             'type': 'state',
             'state': self.state[self.room_name].state

@@ -164,7 +164,7 @@ class Table extends Component {
                     return (
                         <div>
                             {player.username} <br />
-                            Chips: {player.chips} <br />
+                            {player.chips} <br />
                             Sitting out
                         </div>
                     )

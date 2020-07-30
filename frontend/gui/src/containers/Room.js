@@ -71,6 +71,10 @@ class Room extends Component {
         //     backgroundColor: 'purple'
         // }
 
+        if (this.state.gameState !== undefined) {
+            console.log(this.state.gameState.show_hands);
+        }
+
         return (
             <div>
                 <div>

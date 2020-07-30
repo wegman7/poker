@@ -1,8 +1,10 @@
+const url = '127.0.0.1:8000';
+
 export default class WebSocketChat {
 
     constructor(room_id) {
         this.room_id = room_id
-        const path = 'ws://127.0.0.1:8000/ws/chat/' + this.room_id + '/';
+        const path = 'ws://' + url + '/ws/chat/' + this.room_id + '/';
         this.socket_ref = new WebSocket(path);
 
         this.socket_ref.onopen = this.onOpen.bind(this);
@@ -78,7 +80,7 @@ export class WebSocketPoker {
 
     constructor(room_id) {
         this.room_id = room_id
-        const path = 'ws://127.0.0.1:8000/ws/poker/' + this.room_id + '/';
+        const path = 'ws://' + url + '/ws/poker/' + this.room_id + '/';
         this.socket_ref = new WebSocket(path);
 
         this.socket_ref.onopen = this.onOpen.bind(this);
