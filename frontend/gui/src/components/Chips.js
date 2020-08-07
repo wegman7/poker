@@ -32,13 +32,13 @@ function Chips(props) {
 
     const redChips = () => {
         var chips = []
-        var position = 20;
+        var position = 0;
         for (let i = 0; i < redChipsTotal; i++) {
-            chips.push(<div style={{ position: 'absolute', top: position.toString() + 'px', left: '68px' }} className="pokerchip iso red" ></div>)
-            position -= 6;
+            chips.push(<div style={{ position: 'absolute', top: position.toString() + 'vw', left: '0vw' }} className="pokerchip iso red" ></div>)
+            position -= .55;
         }
         return (
-            <div style={{ position: 'relative'}} >
+            <div style={{ position: 'absolute'}} >
                 {chips.map(thing => thing)}
             </div>
         )
@@ -46,13 +46,13 @@ function Chips(props) {
 
     const blueChips = () => {
         var chips = []
-        var position = 20;
+        var position = 0;
         for (let i = 0; i < blueChipsTotal; i++) {
-            chips.push(<div style={{ position: 'absolute', top: position.toString() + 'px', left: '98px' }} className="pokerchip iso blue" ></div>)
-            position -= 6;
+            chips.push(<div style={{ position: 'absolute', top: position.toString() + 'vw', left: '2.5vw' }} className="pokerchip iso blue" ></div>)
+            position -= .55;
         }
         return (
-            <div style={{ position: 'relative'}} >
+            <div style={{ position: 'absolute'}} >
                 {chips.map(thing => thing)}
             </div>
         )
@@ -60,28 +60,26 @@ function Chips(props) {
 
     const blackChips = () => {
         var chips = []
-        var position = 20;
+        var position = 0;
         for (let i = 0; i < blackChipsTotal; i++) {
-            chips.push(<div style={{ position: 'absolute', top: position.toString() + 'px', left: '128px' }} className="pokerchip iso" ></div>)
-            position -= 6;
+            chips.push(<div style={{ position: 'absolute', top: position.toString() + 'vw', left: '5vw' }} className="pokerchip iso" ></div>)
+            position -= .55;
         }
         return (
-            <div style={{ position: 'relative'}} >
+            <div style={{ position: 'absolute'}} >
                 {chips.map(thing => thing)}
             </div>
         )
     }
     
     return (
-        <div style={{ height: '40px' }}>
-            <div style={{ position: 'relative'}}>
-                {dealerChip()}
-                {redChips()}
-                {blueChips()}
-                {blackChips()}
-                <div style={{ position: 'absolute', top: '45px', marginLeft: 'auto', marginRight: 'auto', left: '0', right: '0', textAlign: 'center' }}>
-                    {chipsInPotDisplay}
-                </div>
+        <div>
+            {dealerChip()}
+            {redChips()}
+            {blueChips()}
+            {blackChips()}
+            <div style={{ position: 'absolute', bottom: '0%', marginLeft: 'auto', marginRight: 'auto', left: '0', right: '0', textAlign: 'center' }}>
+                {chipsInPotDisplay}
             </div>
         </div>
     );

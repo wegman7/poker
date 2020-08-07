@@ -154,7 +154,6 @@ class PokerConsumer(WebsocketConsumer):
 
     def returnState(self, data):
         print('sending state...')
-        print('SENDING THE STATE!!!!!')
         content = {
             'type': 'state',
             'state': self.state[self.room_name].state

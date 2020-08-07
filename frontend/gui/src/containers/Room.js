@@ -53,56 +53,50 @@ class Room extends Component {
 
     render() {
 
-        // this ACTUALLY keeps correct borders, but does not keep aspect ratios
-        // const style = {
-        //     position: 'fixed',
-        //     top: '100px',
-        //     bottom: '100px',
-        //     left: '100px',
-        //     right: '100px',
+        const roomStyle = {
+            backgroundColor: 'purple',
+            position: 'relative', /* If you want text inside of it */
+            width: '100%',
+            paddingTop: '45%', /* 1:1 Aspect Ratio */
+        };
 
-        //     /* Size limit */
-        //     // maxWidth: '100%',
-        //     // maxHeight: '100%',
-
-        //     /* Other required settings */
-        //     margin: 'auto',
-        //     overflow: 'auto',
-        //     backgroundColor: 'purple'
-        // }
+        const tableAreaStyle = {
+            position: 'absolute',
+            top: '0',
+            left: '0',
+            bottom: '0',
+            right: '0',
+            textAlign: 'center',
+            fontSize: '1.3vw',
+            color: 'white',
+         };
 
         if (this.state.gameState !== undefined) {
             console.log(this.state.gameState.show_hands);
-        }
+        };
 
         return (
-            <div>
-                <div>
+            <div style={roomStyle}>
+                <div style={tableAreaStyle}>
                     <Table
                         gameState={this.state.gameState}
                         username={this.props.username}
                         sitPlayer={this.sitPlayer}
                         reserveSeat={this.reserveSeat}
+                        makeSitAction={this.makeSitAction}
                     />
                 </div>
-                <Row gutter={40}>
-                    <Col className="gutter-row" span={8}>
-                        <ActionBar
-                            gameState={this.state.gameState}
-                            username={this.props.username}
-                            makeAction={this.makeAction}
-                        />
-                    </Col>
-                    <Col className="gutter-row" span={8} />
-                    <Col className="gutter-row" span={8}>
-                        <SitBar
-                            gameState={this.state.gameState}
-                            username={this.props.username}
-                            addChips={this.addChips}
-                            makeSitAction={this.makeSitAction}
-                        />
-                    </Col>
-                </Row>
+                <ActionBar
+                    gameState={this.state.gameState}
+                    username={this.props.username}
+                    makeAction={this.makeAction}
+                />
+                <SitBar
+                    gameState={this.state.gameState}
+                    username={this.props.username}
+                    addChips={this.addChips}
+                    makeSitAction={this.makeSitAction}
+                />
             </div>
         )
     }

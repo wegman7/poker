@@ -64,19 +64,21 @@ class App extends Component {
         <Router>
           <Layout className="layout">
             <Header>
-              <Navbar {...this.props} disconnectFromSocket={this.disconnectFromSocket} />
+              <Navbar {...this.props} initializeSocket={this.initializeSocket} disconnectFromSocket={this.disconnectFromSocket} />
             </Header>
             <Layout>
               {
                 this.props.isAuthenticated
                 ?
+                <div style={{ position: 'absolute', right: '0px'}} >
                 <Sider>
                   <SidePanel {...this.props} initializeSocket={this.initializeSocket} />
                 </Sider>
+                </div>
                 :
                 <div></div>
               }
-              <Content style={{ padding: '30px 30px' }}>
+              <Content style={{}}>
                 <div className="site-layout-content">
                   <BaseRouter {...this.props} pokerSocket={this.state.pokerSocket} />
                 </div>
