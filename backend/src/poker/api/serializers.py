@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from rest_framework import serializers
 
-from poker.models import Contact, Message, Room # , Chat
+from poker.models import Contact, Message, Room, Avatar
 
 class UserSerializer(serializers.ModelSerializer):
 
@@ -20,9 +20,18 @@ class ContactSerializer(serializers.ModelSerializer):
         # fields = ('__all__')
         fields = (
             'user',
+            # 'username',
             'friends',
-            'friends_usernames'
+            'friends_usernames',
+            'avatar',
+            'avatar_url',
+            'test'
         )
+        # lookup_field = 'username'
+        # extra_kwargs = {
+        #     'url': {'lookup_field': 'username'}
+        # }
+
         # depth = 2
 
 class MessageSerializer(serializers.ModelSerializer):
@@ -41,3 +50,9 @@ class RoomSerializer(serializers.ModelSerializer):
             'participants_usernames',
             'name'
         )
+
+class AvatarSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Avatar
+        fields = ('__all__')

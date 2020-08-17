@@ -141,12 +141,13 @@ export class WebSocketPoker {
         this.sendMessage(message);
     }
 
-    sitPlayer = (username, seatId, chips) => {
+    sitPlayer = (username, seatId, chips, avatar) => {
         let message = {
             command: 'sit',
             username: username,
             seatId: seatId,
-            chips: chips
+            chips: chips,
+            avatar: avatar
         }
         this.sendMessage(message);
     }

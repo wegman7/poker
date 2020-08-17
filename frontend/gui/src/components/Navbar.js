@@ -15,11 +15,17 @@ function Navbar(props) {
             {
                 props.isAuthenticated
                 ?
-                <Menu.Item key="2" onClick={buttonClicked}>Logout</Menu.Item>
+                <Menu.Item key="2"><Link to="/choose-avatar/">Change avatar</Link></Menu.Item>
                 :
-                <Menu.Item key="2"><Link to="/login/">Login</Link></Menu.Item>
+                null
             }
-            <Menu.Item key="3">nav 3</Menu.Item>
+            {
+                props.isAuthenticated
+                ?
+                <Menu.Item key="3" onClick={buttonClicked}>Logout</Menu.Item>
+                :
+                <Menu.Item key="3"><Link to="/login/">Login</Link></Menu.Item>
+            }
         </Menu>
     )
 }

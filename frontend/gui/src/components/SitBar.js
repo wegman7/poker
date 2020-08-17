@@ -105,7 +105,6 @@ class SitBar extends Component {
     
     render() {
         if (this.props.gameState === undefined) { return null; }
-        console.log(this.props.gameState);
 
         const sittingIn = () => {
             let myPlayer = this.props.gameState.players[this.props.username];

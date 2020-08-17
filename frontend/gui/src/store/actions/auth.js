@@ -26,6 +26,7 @@ export const logout = () => {
     localStorage.removeItem('token');
     localStorage.removeItem('username');
     localStorage.removeItem('expirationDate');
+    localStorage.removeItem('avatar');
     return {
         type: actionTypes.AUTH_LOGOUT
     }
@@ -45,6 +46,16 @@ export const authLogin = (username, password) => {
             localStorage.setItem('username', username);
             localStorage.setItem('expirationDate', expirationDate);
             dispatch(authSuccess(token, username));
+
+            axios.get('api/contact/')
+            .then(response => {
+                const contact = response.data.filter(contacts => contacts.user.username === username)[0];
+                let avatar = axios.defaults.baseURL + '/media/' + contact.avatar_url;
+                localStorage.setItem('avatar', avatar);
+            })
+            .catch(error => {
+                console.log(error);
+            })
         })
         .catch(error => {
             dispatch(authFail(error))
@@ -68,6 +79,16 @@ export const authSignup = (username, email, password1, password2) => {
             localStorage.setItem('username', username);
             localStorage.setItem('expirationDate', expirationDate);
             dispatch(authSuccess(token, username));
+
+            axios.get('api/contact/')
+            .then(response => {
+                const contact = response.data.filter(contacts => contacts.user.username === username)[0];
+                let avatar = axios.defaults.baseURL + '/media/' + contact.avatar_url;
+                localStorage.setItem('avatar', avatar);
+            })
+            .catch(error => {
+                console.log(error);
+            })
         })
         .catch(error => {
             dispatch(authFail(error))

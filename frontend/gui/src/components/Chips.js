@@ -22,7 +22,7 @@ function Chips(props) {
         if (player) {
             if (player.dealer) {
                 return (
-                    <div style={{ position: 'absolute', top: '20px', left: '170px' }} class="pokerchip flat dealer">Dealer</div>
+                    <div style={{ position: 'absolute', left: '100%' }} class="pokerchip flat dealer">Dealer</div>
                 );
             }
         } else {
@@ -78,7 +78,7 @@ function Chips(props) {
             {redChips()}
             {blueChips()}
             {blackChips()}
-            <div style={{ position: 'absolute', bottom: '0%', marginLeft: 'auto', marginRight: 'auto', left: '0', right: '0', textAlign: 'center' }}>
+            <div style={{ position: 'absolute', bottom: '0%', marginLeft: 'auto', marginRight: 'auto', left: '0', right: '0', textAlign: 'center', fontSize: '.8vw' }}>
                 {chipsInPotDisplay}
             </div>
         </div>

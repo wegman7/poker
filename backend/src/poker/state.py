@@ -27,7 +27,7 @@ class State():
 
         self.convert_username_to_seat_id = {}
     
-    def initializePlayer(self, username, seat_id, chips):
+    def initializePlayer(self, username, seat_id, chips, avatar):
 
         self.convert_username_to_seat_id[username] = seat_id
 
@@ -53,7 +53,8 @@ class State():
             'sit_in_after_hand': False,
             'sit_out_after_hand': False,
             'stand_up_after_hand': False,
-            'add_chips_after_hand': 0
+            'add_chips_after_hand': 0,
+            'avatar': avatar
         }
     
     def reserveSeat(self, data):
@@ -73,7 +74,8 @@ class State():
         username = data['username']
         seat_id = data['seatId']
         chips = float(data['chips'])
-        self.state['players'][username] = self.initializePlayer(username, seat_id, chips)
+        avatar = data['avatar']
+        self.state['players'][username] = self.initializePlayer(username, seat_id, chips, avatar)
 
         # if there are two or more players, start the game
         players_in_game = 0

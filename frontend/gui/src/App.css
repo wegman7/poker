@@ -58,10 +58,19 @@
     -6px 6px 10px #555;
 }
 
-/* .pokerchip.flat:hover{
-  transform:rotate(90deg);
-} */
+[type=radio] { 
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
 
-/* .pokerchip.iso:hover{
-  transform: perspective(3000px) rotateX(55deg) rotateZ(-40deg) translateZ(.5em);
-} */
+/* IMAGE STYLES */
+[type=radio] + img {
+  cursor: pointer;
+}
+
+/* CHECKED STYLES */
+[type=radio]:checked + img {
+  outline: 2px solid #f00;
+}

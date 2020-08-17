@@ -20,7 +20,7 @@ const playerAreaStyle = {
     position: 'absolute', 
     backgroundColor: 'blue', 
     width: '11%', 
-    height: '25%' 
+    height: '28.5%' 
 };
 var playerBarStyle = { 
     backgroundColor: 'lightGrey', 
@@ -28,21 +28,22 @@ var playerBarStyle = {
     textAlign: 'center', 
     position: 'absolute', 
     borderRadius: '50px', 
-    fontSize: '1.2vw',
+    fontSize: '.8vw',
     width: '100%',
     bottom: '0%'
 };
 const communityCardsStyle = {
     position: 'absolute',
-    height: '7vw', 
+    height: '6.8vw', 
     width: '4.7vw', 
     top: '15%' 
 };
 const cardStyle = {
     position: 'absolute', 
-    height: '7vw', 
-    width: '4.7vw', 
-    top: '30%' 
+    height: '9vw', 
+    width: '6vw', 
+    // top: '50%', 
+    overflow: 'hidden'
 }
 const chipAreaStyle = { 
     position: 'absolute', 
@@ -66,7 +67,7 @@ class Table extends Component {
     onFinish = (values) => {
         if (values.chips !== undefined && values.chips >= this.props.gameState.big_blind * 40) { 
             let seatId = this.props.gameState.players[this.props.username].seat_id;
-            this.props.sitPlayer(this.props.username, seatId, values.chips);
+            this.props.sitPlayer(this.props.username, seatId, values.chips, localStorage.getItem('avatar'));
         } else {
             alert('Must buy in with at least 40 big blinds');
         }
@@ -92,16 +93,20 @@ class Table extends Component {
                 )
             } else if (visable) {
                 return (
-                    <div>
-                        <Card suit={cards[0].suit} face={cards[0].rank} style={{ ...cardStyle, left: '19%'}} />
-                        <Card suit={cards[1].suit} face={cards[1].rank}  style={{ ...cardStyle, left: '33%'}}  />
+                    <div style={{ position: 'absolute', top: '60%', width: '100%', height: '40%' }}>
+                        <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+                            <Card suit={cards[0].suit} face={cards[0].rank} style={{ ...cardStyle, left: '10%'}} />
+                            <Card suit={cards[1].suit} face={cards[1].rank}  style={{ ...cardStyle, left: '28%'}}  />
+                        </div>
                     </div>
                 )
             } else {
                 return (
-                    <div>
-                        <Card suit='' face='' style={{ ...cardStyle, left: '19%'}} />
-                        <Card suit='' face=''  style={{ ...cardStyle, left: '33%'}} />
+                    <div style={{ position: 'absolute', top: '60%', width: '100%', height: '40%' }}>
+                        <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
+                            <Card suit='' face='' style={{ ...cardStyle, left: '10%'}} />
+                            <Card suit='' face=''  style={{ ...cardStyle, left: '28%'}} />
+                        </div>
                     </div>
                 )
             }}
@@ -125,6 +130,7 @@ class Table extends Component {
             if (this.props.gameState.draw_for_dealer) {
                 return (
                     <div>
+                        <img style={{ position: 'absolute', width: '100%', height: '80%' }} src={player.avatar} alt="" />
                         {renderCards(true, cards)}
                     </div>
                 )
@@ -134,6 +140,7 @@ class Table extends Component {
                 // return face up hole cards
                 return (
                     <div>
+                        <img style={{ position: 'absolute', width: '100%', height: '80%', left: '0%' }} src={player.avatar} alt="" />
                         {renderCards(true, cards)}
                     </div>
                 )
@@ -142,6 +149,7 @@ class Table extends Component {
                 // return face down hold cards
                 return (
                     <div>
+                        <img style={{ position: 'absolute', width: '100%', height: '80%', left: '0%' }} src={player.avatar} alt="" />
                         {renderCards(false, cards)}
                     </div>
                 )
@@ -314,18 +322,18 @@ class Table extends Component {
         return (
             <div>
             <div style={tableStyle}></div>
-                <div style={{...playerAreaStyle, top: '0%', left: '30%'}}>
+                <div style={{ ...playerAreaStyle, top: '-3%', left: '30%' }}>
                     {renderSeat(8)}
                     {renderPlayerBar(8)}
                 </div>
-                <div style={{ ...chipAreaStyle, top: '25%', left: '31.5%' }}>
+                <div style={{ ...chipAreaStyle, top: '26%', left: '31.5%' }}>
                     <Chips gameState={this.props.gameState} seatId={8} />
                 </div>
                 <div style={{...playerAreaStyle, top: '15%', left: '5%'}}>
                     {renderSeat(7)}
                     {renderPlayerBar(7)}
                 </div>
-                <div style={{ ...chipAreaStyle, top: '40%', left: '7%' }}>
+                <div style={{ ...chipAreaStyle, top: '44%', left: '7%' }}>
                     <Chips gameState={this.props.gameState} seatId={7} />
                 </div>
                 <div style={{...playerAreaStyle, top: '60%', left: '2%'}}>
@@ -367,14 +375,14 @@ class Table extends Component {
                     {renderSeat(1)}
                     {renderPlayerBar(1)}
                 </div>
-                <div style={{ ...chipAreaStyle, top: '40%', left: '86%' }}>
+                <div style={{ ...chipAreaStyle, top: '44%', left: '86%' }}>
                     <Chips gameState={this.props.gameState} seatId={1} />
                 </div>
-                <div style={{...playerAreaStyle, left: '60%', top: '0%'}}>
+                <div style={{...playerAreaStyle, left: '60%', top: '-3%'}}>
                     {renderSeat(0)}
                     {renderPlayerBar(0)}
                 </div>
-                <div style={{ ...chipAreaStyle, top: '25%', left: '61.5%' }}>
+                <div style={{ ...chipAreaStyle, top: '26%', left: '61.5%' }}>
                     <Chips gameState={this.props.gameState} seatId={0} />
                 </div>
                 {/* community cards */}

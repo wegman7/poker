@@ -1,5 +1,4 @@
 import React, { Component } from 'react';
-import { Row, Col } from 'antd';
 
 import ActionBar from '../components/ActionBar';
 import Table from '../components/Table';
@@ -35,8 +34,8 @@ class Room extends Component {
         console.log('seat reserved', data.seatId);
     }
 
-    sitPlayer = (username, seatId, chips) => {
-        this.props.pokerSocket.sitPlayer(username, seatId, chips);
+    sitPlayer = (username, seatId, chips, avatar) => {
+        this.props.pokerSocket.sitPlayer(username, seatId, chips, avatar);
     }
 
     makeAction = (action, username, chips, chipsInPot) => {
@@ -70,10 +69,6 @@ class Room extends Component {
             fontSize: '1.3vw',
             color: 'white',
          };
-
-        if (this.state.gameState !== undefined) {
-            console.log(this.state.gameState.show_hands);
-        };
 
         return (
             <div style={roomStyle}>
