@@ -12,7 +12,7 @@ function CommunityChips(props) {
     }
     var chipsInPot = props.gameState.pot - total;
     var chipsInPotDisplay = chipsInPot;
-    if (chipsInPotDisplay === 0) { chipsInPotDisplay = null }
+    if (chipsInPotDisplay === 0 || props.gameState.pot === 0) { chipsInPotDisplay = null }
 
     // convert chipsInPot to actual chips
     var redChipsTotal = parseInt(chipsInPot / 5);
@@ -68,7 +68,7 @@ function CommunityChips(props) {
             {redChips()}
             {blueChips()}
             {blackChips()}
-            <div style={{ position: 'absolute', bottom: '0%', left: '0%', width: '100%', height: '15%', backgroundColor: 'orange' }}>
+            <div style={{ position: 'absolute', bottom: '0%', left: '0%', width: '100%', height: '15%', /* backgroundColor: 'orange' */ }}>
                 <div style={{ position: 'relative', textAlign: 'centered' }}>
                     {chipsInPotDisplay}
                 </div>

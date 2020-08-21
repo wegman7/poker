@@ -3,10 +3,10 @@ import React, { Component } from 'react';
 const actionBarContainerStyle = { 
     position: 'absolute', 
     height: '29%', 
-    width: '27%', 
-    top: '86%', 
-    left: '70%', 
-    backgroundColor: 'red' 
+    width: '33%', 
+    top: '87.5%', 
+    left: '66.5%', 
+    // backgroundColor: 'red' 
 }
 const foldButtonStyle = {
     position: 'absolute',
@@ -20,7 +20,7 @@ const checkButtonStyle = {
     height: '25%', 
     width: '33.3%' ,
     bottom: '0%',
-    fontSize: '.8vw'
+    fontSize: '1.05vw'
 }
 const callButtonStyle = {
     position: 'absolute',
@@ -32,7 +32,7 @@ const callButtonStyle = {
 }
 const betButtonContainerStyle = {
     position: 'absolute',
-    backgroundColor: 'pink',
+    // backgroundColor: 'pink',
     height: '100%',
     width: '33.3%',
     left: '66.6%',
@@ -106,6 +106,7 @@ class ActionBar extends Component {
     };
 
     componentDidUpdate() {
+        if (this.props.gameState.players[this.props.username] === undefined) { return; }
         if (this.state.gameStateCopy !== this.props.gameState) {
             if (this.props.gameState !== undefined && this.props.gameState.hand_in_action && this.props.gameState.players[this.props.username].spotlight) {
                 if (this.props.gameState.current_bet === 0) {

@@ -4,9 +4,9 @@ const sitBarContainerStyle = {
     position: 'absolute', 
     height: '22%', 
     width: '27%', 
-    top: '94%', 
+    top: '94.5%', 
     left: '0%', 
-    backgroundColor: 'red' 
+    // backgroundColor: 'red' 
 }
 const sitOutStyle = {
     position: 'absolute',
@@ -46,7 +46,7 @@ const addChipsFormContainer = {
     height: '66.7%',
     left: '66.7%',
     fontSize: '1.05vw',
-    backgroundColor: 'orange'
+    // backgroundColor: 'orange'
 }
 const addChipsAmountStyle = {
     position: 'absolute',

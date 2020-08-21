@@ -4,6 +4,9 @@ from django.db import models
 class Avatar(models.Model):
     image = models.ImageField(default='default.png', upload_to='avatars')
 
+    def __str__(self):
+        return str(self.image)
+
 class Contact(models.Model):
     user = models.ForeignKey(User, related_name='friends', on_delete=models.CASCADE)
     friends = models.ManyToManyField('self', blank=True)

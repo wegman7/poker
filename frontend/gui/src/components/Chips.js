@@ -22,7 +22,7 @@ function Chips(props) {
         if (player) {
             if (player.dealer) {
                 return (
-                    <div style={{ position: 'absolute', left: '100%' }} class="pokerchip flat dealer">Dealer</div>
+                    <div style={{ position: 'absolute', left: '110%' }} className="pokerchip flat dealer">Dealer</div>
                 );
             }
         } else {

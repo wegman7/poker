@@ -1,4 +1,5 @@
-import time
+import time, asyncio, threading
+from asgiref.sync import async_to_sync, sync_to_async
 from treys import Card, Evaluator
 from .deck import Deck
 
@@ -336,6 +337,8 @@ class State():
     def newHand(self):
         print('starting new hand...')
 
+        self.state['show_hands'] = False
+        self.state['community_cards'] = []
         self.deck = Deck()
         
         # reset everything but dealer position
@@ -428,19 +431,10 @@ class State():
             self.determineFirstAndLastToAct()
     
     def endHand(self, winner_username):
-        winner = self.state['players'][winner_username]
-        # put all active chips in the pot, then return them to the winner
-        winner['chips_in_pot'] = 0
-        winner['chips'] += self.state['pot']
-        winner['hole_cards'] = []
-        # reset pot
-        self.state['pot'] = 0
-        self.state['previous_street_pot'] = 0
-        self.state['hand_in_action'] = False
-        self.state['community_cards'] = []
 
-        self.makeSitAction()
-        self.newHand()
+        # pause for a few seconds before next hand
+        task = threading.Thread(target=self.betweenHands, args=(winner_username, ))
+        task.start()
     
     def fold(self, data):
         username = data['username']
@@ -527,6 +521,7 @@ class State():
         self.rotateSpotlight(username)
     
     def showdown(self):
+        print('inside showdown')
         # convert cards to correct format for treys library
         first_card_board = self.state['community_cards'][0]['rank'] + self.state['community_cards'][0]['suit'].lower()
         second_card_board = self.state['community_cards'][1]['rank'] + self.state['community_cards'][1]['suit'].lower()
@@ -555,7 +550,8 @@ class State():
 
                 hand = [Card.new(first_card), Card.new(second_card)]
                 player_result = {}
-                player_result['score'] = evaluator.evaluate(board, hand)
+                # player_result['score'] = evaluator.evaluate(board, hand)
+                player_result['score'] = 1
                 player_result['hand_class'] = evaluator.get_rank_class(player_result['score'])
                 player_result['hand_class_string'] = evaluator.class_to_string(player_result['hand_class'])
 
@@ -583,6 +579,7 @@ class State():
                 for winner in winners:
                     self.createHandHistory(winner + ' wins side pot of ' + str(payout) + ' with ' + results[winner]['hand_class_string'])
                     self.state['players'][winner]['chips'] += payout
+                    self.state['players'][winner]['chips_in_pot'] += payout
                     self.state['pot'] -= payout
                 # subract the side pot that is currently paying out from all other side pots. when a sidepot reaches 0, remove it
                 for side_pot in dict(self.state['side_pot']):
@@ -603,15 +600,32 @@ class State():
                 for winner in winners:
                     self.createHandHistory(winner + ' wins side pot of ' + str(payout) + ' with ' + results[winner]['hand_class_string'])
                     self.state['players'][winner]['chips'] += payout
+                    self.state['players'][winner]['chips_in_pot'] += payout
                     self.state['pot'] -= payout
                 break
         
         # # display the hands on the front end for 5 seconds
-        # self.state['show_hands'] = True
-        # for username, player in {k: v for k, v in self.state['players'].items() if not self.state['players'][k]['sitting_out']}.items():
-        #     player['spotlight'] = False
-        # self.returnState(None)
-        # time.sleep(10)
-        # self.state['show_hands'] = False
+        self.state['show_hands'] = True
         
         self.endHand(winner)
+    
+    def betweenHands(self, winner_username):
+
+        time.sleep(3)
+
+        winner = self.state['players'][winner_username]
+        # put all active chips in the pot, then return them to the winner. the pot will be "0" if there was a split pot, since it was already divided
+        if self.state['pot'] != 0:
+            winner['chips_in_pot'] = self.state['pot']
+            winner['chips'] += self.state['pot']
+
+        # reset pot
+        self.state['pot'] = 0
+        self.state['previous_street_pot'] = 0
+        self.returnState(None)
+
+        time.sleep(3)
+        self.state['hand_in_action'] = False
+        self.makeSitAction()
+        self.newHand()
+        self.returnState(None)

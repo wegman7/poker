@@ -53,7 +53,7 @@ class Room extends Component {
     render() {
 
         const roomStyle = {
-            backgroundColor: 'purple',
+            backgroundColor: '#800000',
             position: 'relative', /* If you want text inside of it */
             width: '100%',
             paddingTop: '45%', /* 1:1 Aspect Ratio */
