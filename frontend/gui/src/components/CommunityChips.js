@@ -70,7 +70,13 @@ function CommunityChips(props) {
             {blackChips()}
             <div style={{ position: 'absolute', bottom: '0%', left: '0%', width: '100%', height: '15%', /* backgroundColor: 'orange' */ }}>
                 <div style={{ position: 'relative', textAlign: 'centered' }}>
-                    {chipsInPotDisplay}
+                    {
+                        chipsInPotDisplay !== undefined && chipsInPotDisplay !== null && chipsInPotDisplay !== 0
+                        ?
+                        <span>${chipsInPotDisplay}</span>
+                        :
+                        null
+                    }
                 </div>
             </div>
         </div>

@@ -21,7 +21,9 @@ class State():
             'current_bet': BIG_BLIND,
             'hand_in_action': False,
             'previous_street_pot': 0.0,
-            'show_hands': False
+            'show_hands': False,
+            'last_action': None,
+            'last_action_username': None
         }
 
         self.createHandHistory, self.returnState = createHandHistory, returnState
@@ -447,6 +449,8 @@ class State():
         my_player['spotlight'] = False
 
         self.createHandHistory(username + ' folds')
+        self.state['last_action'] = 'Fold'
+        self.state['last_action_username'] = username
 
         players_sitting = self.state['players'].items()
         players_active = [player for player in players_sitting if player[1]['in_hand']]
@@ -463,6 +467,8 @@ class State():
         my_player = self.state['players'][username]
 
         self.createHandHistory(username + ' checks')
+        self.state['last_action'] = 'Check'
+        self.state['last_action_username'] = username
 
         self.rotateSpotlight(username)
     
@@ -483,6 +489,8 @@ class State():
             self.state['pot'] += difference
 
         self.createHandHistory(username + ' calls')
+        self.state['last_action'] = 'Call'
+        self.state['last_action_username'] = username
 
         self.rotateSpotlight(username)
     
@@ -497,6 +505,11 @@ class State():
             my_player['all_in'] = True
 
         self.createHandHistory(username + ' bets ' + str(raise_amount))
+        if self.state['current_bet'] == 0:
+            self.state['last_action'] = 'Bet'
+        else:
+            self.state['last_action'] = 'Raise'
+        self.state['last_action_username'] = username
 
         self.state['current_bet'] = raise_amount
         difference = raise_amount - my_player['chips_in_pot']
@@ -622,6 +635,8 @@ class State():
         # reset pot
         self.state['pot'] = 0
         self.state['previous_street_pot'] = 0
+        self.state['last_action'] = None
+        self.state['last_action_username'] = None
         self.returnState(None)
 
         time.sleep(3)

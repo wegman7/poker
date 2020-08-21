@@ -128,12 +128,10 @@ class ActionBar extends Component {
     }
 
     fold = (myPlayer) => {
-        console.log('fold');
         this.props.makeAction('fold', this.props.username, myPlayer.chips, myPlayer.chips_in_pot);
     }
 
     check = (myPlayer) => {
-        console.log('check');
         this.props.makeAction('check', this.props.username, myPlayer.chips, myPlayer.chips_in_pot);
     }
 
@@ -144,7 +142,6 @@ class ActionBar extends Component {
 
     raise = (myPlayer, current_bet, big_blind) => (event) => {
         event.preventDefault();
-        console.log('raise', event.target.chips.value);
         let raise_amount = parseFloat(event.target.chips.value);
         if (current_bet > 0) {
             if (raise_amount < current_bet * 2 && raise_amount + myPlayer.chips_in_pot < myPlayer.chips) {

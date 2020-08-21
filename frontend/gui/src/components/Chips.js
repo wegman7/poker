@@ -79,7 +79,13 @@ function Chips(props) {
             {blueChips()}
             {blackChips()}
             <div style={{ position: 'absolute', bottom: '0%', marginLeft: 'auto', marginRight: 'auto', left: '0', right: '0', textAlign: 'center', fontSize: '.8vw' }}>
-                {chipsInPotDisplay}
+                {
+                    chipsInPotDisplay !== undefined && chipsInPotDisplay !== null && chipsInPotDisplay !== 0
+                    ?
+                    <span>${chipsInPotDisplay}</span>
+                    :
+                    null
+                }
             </div>
         </div>
     );

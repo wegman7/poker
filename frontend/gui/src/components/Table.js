@@ -71,7 +71,12 @@ const logoStyle = {
 
 class Table extends Component {
 
-    state = {}
+    state = { displayLastAction: true }
+
+    UNSAFE_componentWillReceiveProps() {
+        setTimeout(() => this.setState({ displayLastAction: false }), 2000);
+        this.setState({ displayLastAction: true });
+    }
     
     onFinish = (values) => {
         if (values.chips !== undefined && values.chips >= this.props.gameState.big_blind * 40) { 
@@ -233,12 +238,12 @@ class Table extends Component {
             if (player !== undefined) {
                 if (player.spotlight) {
                     // playerBarStyle = { ...playerBarStyle, backgroundColor: '#505954', animation: 'blinker 1s linear infinite' }
-                    playerBarStyle = { ...playerBarStyle, backgroundColor: '#505954' }
+                    playerBarStyle = { ...playerBarStyle, backgroundColor: 'lightGrey', color: 'black' }
                     if (player.username === this.props.username) {
                         let audio = new Audio(mp3_file);
                         audio.play();
                     }
-                } else { playerBarStyle = { ...playerBarStyle, backgroundColor: 'lightGrey' }}
+                } else { playerBarStyle = { ...playerBarStyle, backgroundColor: '#505954', color: 'white' }}
 
                 // player is sitting out
                 if (!player.reserved && player.sitting_out) {
@@ -246,7 +251,7 @@ class Table extends Component {
                         <div>
                             <div style={playerBarStyle}>
                                 {player.username} <br />
-                                {player.chips} <br />
+                                ${player.chips} <br />
                             </div>
                             Sitting out
                         </div>
@@ -259,13 +264,20 @@ class Table extends Component {
                         </div>
                     )
                 }
+
+                var username;
+                if (player.username === this.props.gameState.last_action_username && this.state.displayLastAction) {
+                    username = this.props.gameState.last_action;
+                } else {
+                    username = player.username;
+                }
                 
                 // normal player in hand
                 return (
                     // <div className="blink_me" style={playerBarStyle}>
                     <div style={playerBarStyle}>
-                        {player.username} <br />
-                        {player.chips} <br />
+                        {username} <br />
+                        ${player.chips} <br />
                     </div>
                 )
             }
@@ -279,7 +291,7 @@ class Table extends Component {
                     <div>
                         <div style={{ position: 'absolute', width: '100%', height: '15%', /* backgroundColor: 'yellow' */ }}>
                             <div style={{ position: 'relative', textAlign: 'centered' }}>
-                                Pot: {this.props.gameState.pot}
+                                Pot: ${this.props.gameState.pot}
                             </div>
                         </div>
                         {/* <Card style={{height: '70px', width: '45px'}} /> */}
@@ -290,7 +302,7 @@ class Table extends Component {
                     <div>
                         <div style={{ position: 'absolute', width: '100%', height: '15%', /* backgroundColor: 'yellow' */ }}>
                             <div style={{ position: 'relative', textAlign: 'centered' }}>
-                                Pot: {this.props.gameState.pot}
+                                Pot: ${this.props.gameState.pot}
                             </div>
                         </div>
                         {/* <Card style={{height: '70px', width: '45px'}} /> */}
@@ -304,7 +316,7 @@ class Table extends Component {
                     <div>
                         <div style={{ position: 'absolute', width: '100%', height: '15%', /* backgroundColor: 'yellow' */ }}>
                             <div style={{ position: 'relative', textAlign: 'centered' }}>
-                                Pot: {this.props.gameState.pot}
+                                Pot: ${this.props.gameState.pot}
                             </div>
                         </div>
                         {/* <Card style={{height: '70px', width: '45px'}} /> */}
@@ -319,7 +331,7 @@ class Table extends Component {
                     <div>
                         <div style={{ position: 'absolute', width: '100%', height: '15%', /* backgroundColor: 'yellow' */ }}>
                             <div style={{ position: 'relative', textAlign: 'centered' }}>
-                                Pot: {this.props.gameState.pot}
+                                Pot: ${this.props.gameState.pot}
                             </div>
                         </div>
                         {/* <Card style={{height: '70px', width: '45px'}} /> */}
