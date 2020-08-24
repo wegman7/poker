@@ -53,11 +53,11 @@ class Signup extends Component {
                     :
 
                     <form onSubmit={this.handleSubmit}>
-                        <input type="text" name="username" placeholder="username" />
-                        <input type="text" name="email" placeholder="email" />
-                        <input type="password" name="password1" placeholder="password" />
-                        <input type="password" name="password2" placeholder="confirm password" />
-                        <input type="submit" value="Signup" />
+                        <input className="input" type="text" name="username" placeholder="username" /> <br />
+                        <input className="input" type="text" name="email" placeholder="email" /> <br />
+                        <input className="input" type="password" name="password1" placeholder="password" /> <br />
+                        <input className="input" type="password" name="password2" placeholder="confirm password" /> <br />
+                        <input className="button" type="submit" value="Signup" />
                     </form>
                     
                 }

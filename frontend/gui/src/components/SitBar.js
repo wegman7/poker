@@ -104,7 +104,7 @@ class SitBar extends Component {
     }
     
     render() {
-        if (this.props.gameState === undefined) { return null; }
+        if (this.props.gameState === undefined || this.props.username === undefined) { return null; }
 
         const sittingIn = () => {
             let myPlayer = this.props.gameState.players[this.props.username];
@@ -114,30 +114,30 @@ class SitBar extends Component {
             let sitOutColor;
             let standUpColor;
             if (myPlayer.sit_in_after_hand) {
-                sitInColor = 'darkgrey';
+                sitInColor = 'black';
             } else { sitInColor = 'whiteSmoke'; }
             if (myPlayer.sit_out_after_hand) {
-                sitOutColor = 'darkgrey';
+                sitOutColor = 'black';
             } else { sitOutColor = 'whiteSmoke'; }
             if (myPlayer.stand_up_after_hand) {
-                standUpColor = 'darkgrey';
+                standUpColor = 'black';
             } else { standUpColor = 'whiteSmoke'; }
             
             if (myPlayer.sitting_out) {
                 return (
                     <div>
-                        <button style={{ ...sitInStyle, backgroundColor: sitInColor }} onClick={() => this.sitIn(this.props.makeSitAction, this.props.username)}>Sit in</button>
-                        <button style={{ ...standUpStyle, backgroundColor: standUpColor }} onClick={() => this.standUp(this.props.makeSitAction, this.props.username)}>Stand up</button>
-                        <button style={{ ...addChipsStyle, backgroundColor: sitInColor}} onClick={() => this.setState({renderAddChipsForm: true})}>Add chips</button>
+                        <button style={{ ...sitInStyle, color: sitInColor }} className="button" onClick={() => this.sitIn(this.props.makeSitAction, this.props.username)}>Sit in</button>
+                        <button style={{ ...standUpStyle, color: standUpColor }} className="button" onClick={() => this.standUp(this.props.makeSitAction, this.props.username)}>Stand up</button>
+                        <button style={{ ...addChipsStyle, color: sitInColor}} className="button" onClick={() => this.setState({renderAddChipsForm: true})}>Add chips</button>
                         {addChipsForm()}
                     </div>
                 )
             } else {
                 return (
                     <div>
-                        <button style={{ ...sitOutStyle, backgroundColor: sitOutColor }} onClick={() => this.sitOut(this.props.makeSitAction, this.props.username)}>Sit out</button>
-                        <button style={{ ...standUpStyle, backgroundColor: standUpColor }} onClick={() => this.standUp(this.props.makeSitAction, this.props.username)}>Stand up</button>
-                        <button style={{ ...addChipsStyle, backgroundColor: sitInColor }} onClick={() => this.setState({renderAddChipsForm: true})}>Add chips</button>
+                        <button style={{ ...sitOutStyle, color: sitOutColor }} className="button" onClick={() => this.sitOut(this.props.makeSitAction, this.props.username)}>Sit out</button>
+                        <button style={{ ...standUpStyle, color: standUpColor }} className="button" onClick={() => this.standUp(this.props.makeSitAction, this.props.username)}>Stand up</button>
+                        <button style={{ ...addChipsStyle, color: sitInColor }} className="button" onClick={() => this.setState({renderAddChipsForm: true})}>Add chips</button>
                         {addChipsForm()}
                     </div>
                 );
@@ -148,9 +148,9 @@ class SitBar extends Component {
             if (this.state.renderAddChipsForm) {
                 return (
                     <form style={addChipsFormContainer} onSubmit={this.addChips(this.props.addChips, this.props.username)}>
-                        <input style={addChipsAmountStyle} type="text" name="chips" placeholder="Amount" />
-                        <input style={submitAddChipsStyle} type="submit" value="Confirm" />
-                        <input style={cancelAddChipsStyle} type="button" onClick={() => this.setState({renderAddChipsForm: false})} value="Cancel" />
+                        <input style={addChipsAmountStyle} className="input" type="text" name="chips" placeholder="Amount" />
+                        <input style={submitAddChipsStyle} className="button" type="submit" value="Confirm" />
+                        <input style={cancelAddChipsStyle} className="button" type="button" onClick={() => this.setState({renderAddChipsForm: false})} value="Cancel" />
                     </form>
                 );
             } else {

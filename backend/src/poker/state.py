@@ -278,13 +278,25 @@ class State():
         player = self.state['players'][username]
         player['spotlight'] = False
         if player['last_to_act']:
-            self.dealStreet()
+            # self.dealStreet()
+            # if there are not at least two players with chips behind, show cards and deal until showdown
+            players_active = [player for player in self.state['players'].values() if not player['all_in'] and player['in_hand']]
+            if len(players_active) < 2:
+                self.state['show_hands'] = True
+            task = threading.Thread(target=self.betweenStreets, args=())
+            task.start()
         else:
             next_player = self.state['players'][player['next_player']]
             while True:
                 if not next_player['in_hand'] or next_player['all_in']:
                     if next_player['last_to_act']:
-                        self.dealStreet()
+                        # self.dealStreet()
+                        # if there are not at least two players with chips behind, show cards and deal until showdown
+                        players_active = [player for player in self.state['players'].values() if not player['all_in'] and player['in_hand']]
+                        if len(players_active) < 2:
+                            self.state['show_hands'] = True
+                        task = threading.Thread(target=self.betweenStreets, args=())
+                        task.start()
                         break
                     else:
                         next_player = self.state['players'][next_player['next_player']]
@@ -351,6 +363,7 @@ class State():
             player['big_blind'] = False
             player['last_to_act'] = False
             player['all_in'] = False
+            player['in_hand'] = False
             player['hole_cards'] = []
             if player['chips'] == 0:
                 player['sitting_out'] = True
@@ -424,11 +437,13 @@ class State():
             self.state['community_cards'].append(card)
         
 
-        # if there are not at least two players with chips behind, we deal the rest of the cards
-        players_sitting = self.state['players'].values()
-        players_active = [player for player in players_sitting if not player['all_in'] and player['in_hand']]
+        # if there are not at least two players with chips behind, show cards and deal until showdown
+        players_active = [player for player in self.state['players'].values() if not player['all_in'] and player['in_hand']]
         if len(players_active) < 2:
-            self.dealStreet()
+            self.state['show_hands'] = True
+            task = threading.Thread(target=self.betweenStreets, args=())
+            task.start()
+            # self.dealStreet()
         else:
             self.determineFirstAndLastToAct()
     
@@ -563,8 +578,8 @@ class State():
 
                 hand = [Card.new(first_card), Card.new(second_card)]
                 player_result = {}
-                # player_result['score'] = evaluator.evaluate(board, hand)
-                player_result['score'] = 1
+                player_result['score'] = evaluator.evaluate(board, hand)
+                # player_result['score'] = 1
                 player_result['hand_class'] = evaluator.get_rank_class(player_result['score'])
                 player_result['hand_class_string'] = evaluator.class_to_string(player_result['hand_class'])
 
@@ -641,6 +656,14 @@ class State():
 
         time.sleep(3)
         self.state['hand_in_action'] = False
+        winner['chips_in_pot'] = 0
         self.makeSitAction()
         self.newHand()
+        self.returnState(None)
+    
+    def betweenStreets(self):
+        time.sleep(2)
+        self.dealStreet()
+        self.state['last_action'] = None
+        self.state['last_action_username'] = None
         self.returnState(None)

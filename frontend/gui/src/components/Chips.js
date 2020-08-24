@@ -34,7 +34,7 @@ function Chips(props) {
         var chips = []
         var position = 0;
         for (let i = 0; i < redChipsTotal; i++) {
-            chips.push(<div style={{ position: 'absolute', top: position.toString() + 'vw', left: '0vw' }} className="pokerchip iso red" ></div>)
+            chips.push(<div key={i} style={{ position: 'absolute', top: position.toString() + 'vw', left: '0vw' }} className="pokerchip iso red" ></div>)
             position -= .55;
         }
         return (
@@ -48,7 +48,7 @@ function Chips(props) {
         var chips = []
         var position = 0;
         for (let i = 0; i < blueChipsTotal; i++) {
-            chips.push(<div style={{ position: 'absolute', top: position.toString() + 'vw', left: '2.5vw' }} className="pokerchip iso blue" ></div>)
+            chips.push(<div key={i} style={{ position: 'absolute', top: position.toString() + 'vw', left: '2.5vw' }} className="pokerchip iso blue" ></div>)
             position -= .55;
         }
         return (
@@ -62,7 +62,7 @@ function Chips(props) {
         var chips = []
         var position = 0;
         for (let i = 0; i < blackChipsTotal; i++) {
-            chips.push(<div style={{ position: 'absolute', top: position.toString() + 'vw', left: '5vw' }} className="pokerchip iso" ></div>)
+            chips.push(<div key={i} style={{ position: 'absolute', top: position.toString() + 'vw', left: '5vw' }} className="pokerchip iso" ></div>)
             position -= .55;
         }
         return (

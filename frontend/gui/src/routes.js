@@ -10,7 +10,7 @@ import ChooseAvatar from './containers/ChooseAvatar';
 const BaseRouter = (props) => (
     
     <div>
-        <Route exact path='/' component={Home} />
+        <Route exact path='/' render={(routeProps) => <Home {...props} {...routeProps} />} />
         <Route exact path='/login/' component={Login} />
         <Route exact path='/signup/' component={Signup} />
         <Route exact path='/room/' render={(routeProps) => <Room {...props} {...routeProps} />} />

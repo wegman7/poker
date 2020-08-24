@@ -5,6 +5,10 @@ class ChooseAvatar extends Component {
 
     state = { myAvatarId: null, myAvatarUrl: null }
 
+    componentDidUpdate() {
+        if (this.props.username === null) { this.props.history.push('/'); return; }
+    }
+
     componentDidMount() {
         axios.get('api/avatar/')
             .then(response => {
@@ -23,7 +27,6 @@ class ChooseAvatar extends Component {
         event.preventDefault();
         let avatar = this.state.myAvatarId;
         let avatarUrl = this.state.myAvatarUrl;
-        console.log(avatar);
         if (!avatar) {
             alert('You must pick one!')
         } else {
@@ -64,7 +67,7 @@ class ChooseAvatar extends Component {
         if (!this.state.avatars) { return null; }
         return (
             <div>
-                <div>
+                <div style={{ position: 'absolute', width: '50%' }}>
                     {
                         this.state.avatars.map(avatar => 
                             <label key={avatar.id}>
@@ -73,10 +76,16 @@ class ChooseAvatar extends Component {
                             </label>)
                     }
                 </div>
-                <form onSubmit={this.handleSubmit}>
-                    <img name="myAvatar" src={this.state.myAvatarUrl} alt='' />
-                    <input type="submit" value="Confirm" />
-                </form>
+                {
+                    this.state.myAvatarUrl !== null
+                    ?
+                    <form style={{ position: 'absolute', left: '60%' }} onSubmit={this.handleSubmit}>
+                        <img style={{ width: '100px', height: '100px' }} name="myAvatar" src={this.state.myAvatarUrl} alt='' />
+                        <input className="button" type="submit" value="Confirm" />
+                    </form>
+                    :
+                    null
+                }
             </div>
         )
     }

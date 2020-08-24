@@ -97,33 +97,26 @@ const maxBetStyle = {
 
 class ActionBar extends Component {
 
-    // create gameStateCopy to determine whenever there is a new gameState
     state = {
         betAmount: 0,
         minimumBet: 0,
-        maxBet: 0,
-        gameStateCopy: null
+        maxBet: 0
     };
 
-    componentDidUpdate() {
-        if (this.props.gameState.players[this.props.username] === undefined) { return; }
-        if (this.state.gameStateCopy !== this.props.gameState) {
-            if (this.props.gameState !== undefined && this.props.gameState.hand_in_action && this.props.gameState.players[this.props.username].spotlight) {
-                if (this.props.gameState.current_bet === 0) {
-                    this.setState({
-                        minimumBet: this.props.gameState.big_blind,
-                        betAmount: this.props.gameState.big_blind,
-                        maxBet: this.props.gameState.players[this.props.username].chips + this.props.gameState.players[this.props.username].chips_in_pot
-                    });
-                } else {
-                    this.setState({
-                        minimumBet: this.props.gameState.current_bet * 2,
-                        betAmount: this.props.gameState.current_bet * 2,
-                        maxBet: this.props.gameState.players[this.props.username].chips + this.props.gameState.players[this.props.username].chips_in_pot
-                    });
-                }
-                this.setState({ gameStateCopy: this.props.gameState });
-            }
+    UNSAFE_componentWillReceiveProps(newProps) {
+        if (newProps.username === null || newProps.gameState.players[newProps.username] === undefined) { return; }
+        if (newProps.gameState.current_bet === 0) {
+            this.setState({
+                minimumBet: newProps.gameState.big_blind,
+                betAmount: newProps.gameState.big_blind,
+                maxBet: newProps.gameState.players[this.props.username].chips + newProps.gameState.players[this.props.username].chips_in_pot
+            });
+        } else {
+            this.setState({
+                minimumBet: newProps.gameState.current_bet * 2,
+                betAmount: newProps.gameState.current_bet * 2,
+                maxBet: newProps.gameState.players[newProps.username].chips + newProps.gameState.players[newProps.username].chips_in_pot
+            });
         }
     }
 
@@ -136,7 +129,6 @@ class ActionBar extends Component {
     }
 
     call = (myPlayer) => {
-        console.log('call');
         this.props.makeAction('call', this.props.username, myPlayer.chips, myPlayer.chips_in_pot);
     }
 
@@ -162,6 +154,8 @@ class ActionBar extends Component {
     }
 
     incrementBet = () => {
+        if (this.state.betAmount < this.state.minimumBet) { this.setState({ betAmount: this.state.minimumBet }); return; }
+        if (this.state.betAmount > this.state.maxBet) { this.setState({ betAmount: this.state.maxBet }); return; }
         if (this.state.betAmount + this.props.gameState.big_blind <= this.state.maxBet) {
             this.setState({
                 betAmount: this.state.betAmount + this.props.gameState.big_blind
@@ -170,6 +164,8 @@ class ActionBar extends Component {
     }
 
     decreaseBet = () => {
+        if (this.state.betAmount < this.state.minimumBet) { this.setState({ betAmount: this.state.minimumBet }); return; }
+        if (this.state.betAmount > this.state.maxBet) { this.setState({ betAmount: this.state.maxBet }); return; }
         if (this.state.betAmount - this.props.gameState.big_blind >= this.state.minimumBet) {
             this.setState({
                 betAmount: this.state.betAmount - this.props.gameState.big_blind
@@ -209,8 +205,27 @@ class ActionBar extends Component {
     }
 
     render() {
+        // if it tries to render before we have a gamestate
         if (this.props.gameState === undefined) { return null; }
+        // if we have timed out and this.props.username has become undefined, or we are not seated at the table
+        if (this.props.username === undefined || this.props.gameState.players[this.props.username] === undefined) { return null; }
         let myPlayer = this.props.gameState.players[this.props.username];
+        var callOrAllIn;
+        if (this.props.gameState.current_bet < myPlayer.chips + myPlayer.chips_in_pot) {
+            callOrAllIn = 'Call';
+        } else {
+            callOrAllIn = 'All in';
+        }
+        var raiseOrAllIn;
+        var raiseBarInputStyle;
+        if (this.state.minimumBet < this.state.maxBet) {
+            raiseOrAllIn = 'Raise';
+            raiseBarInputStyle = {}
+        } else {
+            raiseOrAllIn = 'All in';
+            raiseBarInputStyle = { display: 'none' }
+        }
+
         if (myPlayer !== undefined) {
             if (myPlayer.spotlight) {
                 return (
@@ -218,38 +233,34 @@ class ActionBar extends Component {
                         {
                             myPlayer.chips_in_pot === this.props.gameState.current_bet
                             ?
-                            <button style={checkButtonStyle} onClick={() => this.check(myPlayer)}>
+                            <button style={checkButtonStyle} className="button" onClick={() => this.check(myPlayer)}>
                                 Check
                             </button>
                             :
                             <div>
-                                <button style={foldButtonStyle} onClick={() => this.fold(myPlayer)}>Fold</button>
-                                {
-                                    this.state.minimumBet <= this.state.maxBet
-                                    ?
-                                    <button style={callButtonStyle} onClick={() => this.call(myPlayer)}>Call</button>
-                                    :
-                                    <button style={callButtonStyle} onClick={() => this.call(myPlayer)}>All in</button>
-                                }
+                                <button style={foldButtonStyle} className="button" onClick={() => this.fold(myPlayer)}>Fold</button>
+                                <button style={callButtonStyle} className="button" onClick={() => this.call(myPlayer)}>{callOrAllIn}</button>
                             </div>
                         }
                         {
-                            this.state.minimumBet <= this.state.maxBet
+                            this.props.gameState.current_bet < myPlayer.chips + myPlayer.chips_in_pot
                             ?
                             <form style={betButtonContainerStyle} onSubmit={this.raise(myPlayer, this.props.gameState.current_bet, this.props.gameState.big_blind)}>
-                                <input style={minBetStyle} type="button" onClick={this.minBet} value="Min" />
-                                <input style={potBetStyle} type="button" onClick={this.potBet} value="Pot" />
-                                <input style={maxBetStyle} type="button" onClick={this.maxBet} value="Max" />
-                                <input style={valueStyle} type="text" name="chips" placeholder="Amount"  value={this.state.betAmount} onChange={this.updateBet} />
-                                <input style={decreaseBetStyle} type="button" onClick={this.decreaseBet} value="-" />
-                                <input style={sliderStyle} type="range" min={this.state.minimumBet} max={this.state.maxBet} value={this.state.betAmount} onChange={this.updateBet} step={this.props.gameState.big_blind} />
-                                <input style={incrementBetStyle} type="button" onClick={this.incrementBet} value="+" />
+                                <div style={raiseBarInputStyle}>
+                                    <input style={minBetStyle} className="button" type="button" onClick={this.minBet} value="Min" />
+                                    <input style={potBetStyle} className="button" type="button" onClick={this.potBet} value="Pot" />
+                                    <input style={maxBetStyle} className="button" type="button" onClick={this.maxBet} value="Max" />
+                                    <input style={valueStyle} className="input" type="text" name="chips" placeholder="Amount"  value={this.state.betAmount} onChange={this.updateBet} />
+                                    <input style={decreaseBetStyle} className="button" type="button" onClick={this.decreaseBet} value="-" />
+                                    <input style={sliderStyle} className="button" type="range" min={this.state.minimumBet} max={this.state.maxBet} value={this.state.betAmount} onChange={this.updateBet} step={this.props.gameState.big_blind} />
+                                    <input style={incrementBetStyle} className="button" type="button" onClick={this.incrementBet} value="+" />
+                                </div>
                                 {
                                     this.props.gameState.current_bet === 0
                                     ?
-                                    <input style={betButtonStyle} type="submit" value="Bet" />
+                                    <input style={betButtonStyle} className="button" type="submit" value="Bet" />
                                     :
-                                    <input style={betButtonStyle} type="submit" value="Raise" />
+                                    <input style={betButtonStyle} className="button" type="submit" value={raiseOrAllIn} />
                                 }
                             </form>
                             :

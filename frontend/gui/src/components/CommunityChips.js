@@ -25,7 +25,7 @@ function CommunityChips(props) {
         var chips = []
         var position = 10;
         for (let i = 0; i < redChipsTotal; i++) {
-            chips.push(<div style={{ position: 'absolute', top: position.toString() + 'vw', left: '8.75vw' }} className="pokerchip iso red" ></div>)
+            chips.push(<div style={{ position: 'absolute', top: position.toString() + 'vw', left: '8.85vw' }} className="pokerchip iso red" ></div>)
             position -= .55;
         }
         return (
@@ -39,7 +39,7 @@ function CommunityChips(props) {
         var chips = []
         var position = 10;
         for (let i = 0; i < blueChipsTotal; i++) {
-            chips.push(<div style={{ position: 'absolute', top: position.toString() + 'vw', left: '11.75vw' }} className="pokerchip iso blue" ></div>)
+            chips.push(<div style={{ position: 'absolute', top: position.toString() + 'vw', left: '11.85vw' }} className="pokerchip iso blue" ></div>)
             position -= .55;
         }
         return (
@@ -53,7 +53,7 @@ function CommunityChips(props) {
         var chips = []
         var position = 10;
         for (let i = 0; i < blackChipsTotal; i++) {
-            chips.push(<div style={{ position: 'absolute', top: position.toString() + 'vw', left: '14.75vw' }} className="pokerchip iso" ></div>)
+            chips.push(<div style={{ position: 'absolute', top: position.toString() + 'vw', left: '14.85vw' }} className="pokerchip iso" ></div>)
             position -= .55;
         }
         return (
@@ -68,7 +68,7 @@ function CommunityChips(props) {
             {redChips()}
             {blueChips()}
             {blackChips()}
-            <div style={{ position: 'absolute', bottom: '0%', left: '0%', width: '100%', height: '15%', /* backgroundColor: 'orange' */ }}>
+            <div style={{ position: 'absolute', bottom: '-3%', left: '0%', width: '100%', height: '15%', /* backgroundColor: 'orange' */ }}>
                 <div style={{ position: 'relative', textAlign: 'centered' }}>
                     {
                         chipsInPotDisplay !== undefined && chipsInPotDisplay !== null && chipsInPotDisplay !== 0

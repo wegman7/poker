@@ -15,7 +15,7 @@ function Navbar(props) {
             {
                 props.isAuthenticated
                 ?
-                <Menu.Item key="2"><Link to="/choose-avatar/">Change avatar</Link></Menu.Item>
+                <Menu.Item key="2"><Link to="/choose-avatar/">Change Avatar</Link></Menu.Item>
                 :
                 null
             }

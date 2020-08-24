@@ -13,7 +13,7 @@ import WebSocketChat, { WebSocketPoker } from './websocket';
 import 'antd/dist/antd.css';
 import './App.css';
 
-const { Header, Content, Sider, Footer } = Layout;
+const { Header, Content } = Layout;
 
 class App extends Component {
 
@@ -63,17 +63,15 @@ class App extends Component {
       <div>
         <Router>
           <Layout className="layout">
-            <Header>
+            <Header style={{ zIndex: '1' }}>
               <Navbar {...this.props} initializeSocket={this.initializeSocket} disconnectFromSocket={this.disconnectFromSocket} />
             </Header>
             <Layout>
               {
                 this.props.isAuthenticated
                 ?
-                <div style={{ position: 'absolute', right: '0px'}} >
-                <Sider>
+                <div style={{ position: 'absolute', right: '0px', /* top: '10px', */ zIndex: '1' }} >
                   <SidePanel {...this.props} initializeSocket={this.initializeSocket} />
-                </Sider>
                 </div>
                 :
                 <div></div>
@@ -84,7 +82,7 @@ class App extends Component {
                 </div>
               </Content>
             </Layout>
-            <Footer>footer</Footer>
+            {/* <Footer>footer</Footer> */}
           </Layout>
           {
             this.state.renderChat

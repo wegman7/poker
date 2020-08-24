@@ -1,6 +1,6 @@
 .site-layout-content {
   background: #fff;
-  /* background-image: url(https://sourceoneevents.com/wp-content/uploads/2018/07/las-vegas-wallpapers-high-definition-On-High-Resolution-Wallpaper.jpg); */
+  /* background-image: url('assets/vegas.jpg'); */
   background-size: 100%;
   padding: 6.5%;
   min-height: 280px;
@@ -89,4 +89,64 @@
   50% {
     opacity: 0;
   }
+}
+
+.room-background {
+  position: absolute;
+  width: 100%;
+  height: 120%;
+  left: 0;
+  top: 0;
+  /* background: url('assets/vegas.jpg') no-repeat center center fixed; */
+  background: url('assets/poker_chip_svg.png') center center fixed;
+  background-repeat: space;
+  background-repeat: round;
+  background-size: 100px;
+  opacity: 30%;
+}
+
+.button {
+	box-shadow: 0px 0px 0px 0px #9fb4f2;
+	background: linear-gradient(to bottom, #a1b7df 5%, #476e9e 100%);
+	background-color:#7892c2;
+	border-radius: 4px;
+  border: .3vw solid #b2bfe6;
+  border-image: linear-gradient(to bottom, #a1b7df, #07112c);
+  border-image-slice: 1;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Arial;
+	/* font-size:19px; */
+	/* padding:13px 37px; */
+	text-decoration:none;
+	text-shadow:-2px 2px 3px #283966;
+}
+
+.button:hover {
+	background:linear-gradient(to bottom, #476e9e 5%, #7892c2 100%);
+	background-color:#476e9e;
+}
+
+.input {
+	box-shadow: 0px 0px 0px 0px #9fb4f2;
+	background: linear-gradient(to bottom, #ffffff 5%, #ffffff 100%);
+	background-color: #ffffff;
+	border-radius: 4px;
+  border: .3vw solid #b2bfe6;
+  border-image: linear-gradient(to bottom, #a1b7df, #07112c);
+  border-image-slice: 1;
+	display:inline-block;
+	/* cursor:pointer; */
+	color: black;
+	font-family:Arial;
+	text-decoration:none;
+}
+
+.player-bar {
+  box-shadow: 0px 0px 0px 0px #9fb4f2;
+	background: linear-gradient(to bottom, #a1b7df 5%, #476e9e 100%);
+  border: .0001vw solid black;
+  border-radius: 5px;
+	font-family:Arial;
 }

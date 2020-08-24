@@ -23,7 +23,11 @@ class Contact(models.Model):
         return friends
     
     def avatar_url(self):
-        return str(self.avatar.image)
+        # we still need to return a string if there is no avatar to avoid a rest framework error
+        if not self.avatar:
+            return 'no avatar'
+        else:
+            return str(self.avatar.image)
     
     def __str__(self):
         return self.user.username

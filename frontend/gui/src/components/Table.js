@@ -6,11 +6,26 @@ import mp3_file from '../assets/insight.mp3';
 import Chips from './Chips';
 import CommunityChips from './CommunityChips';
 
+const tableBorderStyle = {
+    position: 'absolute',
+    backgroundColor: '#cc6600', 
+    backgroundImage: 'linear-gradient(to right, #cc6600, #ffad33, #cc6600)',
+    margin: '4.5% 3.5% 3% 3.5%',
+    borderRadius: '50%',
+    border: 'solid .1vw black',
+    top: '0',
+    left: '0',
+    bottom: '0',
+    right: '0'
+};
 const tableStyle = {
     position: 'absolute',
     backgroundColor: 'green', 
+    backgroundImage: 'linear-gradient(to bottom, green, #99ff99, green)',
+    boxShadow: 'inset 0px 1px 50px #888',
     margin: '5% 5% 5% 5%',
     borderRadius: '50%',
+    border: 'solid .06vw black',
     top: '0',
     left: '0',
     bottom: '0',
@@ -20,15 +35,14 @@ const playerAreaStyle = {
     position: 'absolute', 
     // backgroundColor: 'blue', 
     width: '11%', 
-    height: '28.5%' 
+    height: '31%' 
 };
 var playerBarStyle = { 
     backgroundColor: 'lightGrey', 
-    padding: '0', 
+    // padding: '0', 
     textAlign: 'center', 
     position: 'absolute', 
-    borderRadius: '50px', 
-    fontSize: '.8vw',
+    fontSize: '.9vw',
     width: '100%',
     bottom: '0%'
 };
@@ -40,7 +54,7 @@ const communityCardsStyle = {
 };
 const cardStyle = {
     position: 'absolute', 
-    height: '9vw', 
+    height: '8.6vw', 
     width: '6vw', 
     // top: '50%', 
     overflow: 'hidden'
@@ -62,18 +76,20 @@ const communityCardsAreaStyle = {
 const logoStyle = {
     position: 'absolute', 
     // backgroudColor: 'pink',
-    top: '25%', 
+    top: '19%', 
     width: '100%',
     textAlign: 'center',
     fontSize: '3vw',
-    color: '#46427F'
+    // color: '#46427F'
+    color: '#0f3e3e'
 }
 
 class Table extends Component {
 
     state = { displayLastAction: true }
 
-    UNSAFE_componentWillReceiveProps() {
+    UNSAFE_componentWillReceiveProps(newProps) {
+        console.log(newProps);
         setTimeout(() => this.setState({ displayLastAction: false }), 2000);
         this.setState({ displayLastAction: true });
     }
@@ -107,19 +123,19 @@ class Table extends Component {
                 )
             } else if (visable) {
                 return (
-                    <div style={{ position: 'absolute', top: '60%', width: '100%', height: '40%' }}>
+                    <div style={{ position: 'absolute', top: '58%', width: '100%', height: '42%' }}>
                         <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
-                            <Card suit={cards[0].suit} face={cards[0].rank} style={{ ...cardStyle, left: '10%' }} />
-                            <Card suit={cards[1].suit} face={cards[1].rank}  style={{ ...cardStyle, left: '28%' }}  />
+                            <Card suit={cards[0].suit} face={cards[0].rank} style={{ ...cardStyle, left: '9.5%' }} />
+                            <Card suit={cards[1].suit} face={cards[1].rank}  style={{ ...cardStyle, left: '27.5%' }}  />
                         </div>
                     </div>
                 )
             } else {
                 return (
-                    <div style={{ position: 'absolute', top: '60%', width: '100%', height: '40%' }}>
+                    <div style={{ position: 'absolute', top: '58%', width: '100%', height: '42%' }}>
                         <div style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}>
-                            <Card suit='' face='' style={{ ...cardStyle, left: '10%' }} />
-                            <Card suit='' face=''  style={{ ...cardStyle, left: '28%' }} />
+                            <Card suit='' face='' style={{ ...cardStyle, left: '9.5%' }} />
+                            <Card suit='' face=''  style={{ ...cardStyle, left: '27.5%' }} />
                         </div>
                     </div>
                 )
@@ -140,11 +156,13 @@ class Table extends Component {
             // if there is a player in this seat
             if (player === undefined) { return null; }
             let cards = player.hole_cards;
+            var opacity;
+            if (player.sitting_out) { opacity = '.6' } else { opacity = '1' }
             // if we are drawing for the dealer chip
             if (this.props.gameState.draw_for_dealer) {
                 return (
                     <div>
-                        <img style={{ position: 'absolute', width: '100%', height: '80%' }} src={player.avatar} alt="" />
+                        <img style={{ position: 'absolute', width: '100%', height: '80%', opacity: opacity }} src={player.avatar} alt="" />
                         {renderCards(true, cards)}
                     </div>
                 )
@@ -162,7 +180,7 @@ class Table extends Component {
                         {
                             player.avatar !== undefined
                             ?
-                            <img style={{ position: 'absolute', width: '100%', height: '80%', left: '0%' }} src={player.avatar} alt="" />
+                            <img style={{ position: 'absolute', width: '100%', height: '78%', left: '0%', opacity: opacity }} src={player.avatar} alt="" />
                             :
                             null
                         }
@@ -197,8 +215,8 @@ class Table extends Component {
                 // if we are not currently sitting at the table
                 } else {
                     return (
-                        <div style={{ position: 'absolute', top: '45%', width: '100%', fontSize: '1.2vw'}} >
-                            <button onClick={() => this.props.reserveSeat(seatId)}>Click to sit</button>
+                        <div style={{ position: 'absolute', top: '45%', width: '100%', fontSize: '1.2vw', color: 'black' }} >
+                            <button className="button" onClick={() => this.props.reserveSeat(seatId)}>Click to sit</button>
                         </div>
                     )
                 }
@@ -238,22 +256,24 @@ class Table extends Component {
             if (player !== undefined) {
                 if (player.spotlight) {
                     // playerBarStyle = { ...playerBarStyle, backgroundColor: '#505954', animation: 'blinker 1s linear infinite' }
-                    playerBarStyle = { ...playerBarStyle, backgroundColor: 'lightGrey', color: 'black' }
+                    playerBarStyle = { ...playerBarStyle, background: 'linear-gradient(to bottom, #f2f2f2 5%, #a6a6a6 100%)', color: 'black' }
                     if (player.username === this.props.username) {
                         let audio = new Audio(mp3_file);
                         audio.play();
                     }
-                } else { playerBarStyle = { ...playerBarStyle, backgroundColor: '#505954', color: 'white' }}
+                } else { playerBarStyle = { ...playerBarStyle, background: 'linear-gradient(to bottom, #8c8c8c 5%, #404040 100%)', color: 'white' }}
 
                 // player is sitting out
                 if (!player.reserved && player.sitting_out) {
                     return (
                         <div>
-                            <div style={playerBarStyle}>
+                            <div className="player-bar" style={playerBarStyle}>
                                 {player.username} <br />
-                                ${player.chips} <br />
+                                {player.chips} <br />
                             </div>
-                            Sitting out
+                            <div style={{ position: 'absolute', fontSize: '.8vw', width: '100%', top: '100%' }}>
+                                Sitting out
+                            </div>
                         </div>
                     )
                 } else if (player.reserved) {
@@ -275,9 +295,16 @@ class Table extends Component {
                 // normal player in hand
                 return (
                     // <div className="blink_me" style={playerBarStyle}>
-                    <div style={playerBarStyle}>
+                    <div className="player-bar" style={playerBarStyle}>
                         {username} <br />
-                        ${player.chips} <br />
+                        {
+                            player.in_hand && player.chips === 0
+                            ?
+                            <span>All in <br /></span>
+                            :
+                            <span>${player.chips} <br /></span>
+                        }
+                        {/* ${player.chips} <br /> */}
                     </div>
                 )
             }
@@ -346,26 +373,27 @@ class Table extends Component {
         }
         return (
             <div>
-            <div style={tableStyle}></div>
-                <div style={{ ...playerAreaStyle, top: '-3%', left: '30%' }}>
+                <div style={tableBorderStyle}></div>
+                <div style={tableStyle}></div>
+                <div style={{ ...playerAreaStyle, top: '-10%', left: '30%' }}>
                     {renderSeat(8)}
                     {renderPlayerBar(8)}
                 </div>
-                <div style={{ ...chipAreaStyle, top: '26%', left: '31.5%' }}>
+                <div style={{ ...chipAreaStyle, top: '22%', left: '31.5%' }}>
                     <Chips gameState={this.props.gameState} seatId={8} />
                 </div>
-                <div style={{...playerAreaStyle, top: '15%', left: '5%'}}>
+                <div style={{...playerAreaStyle, top: '8%', left: '5%'}}>
                     {renderSeat(7)}
                     {renderPlayerBar(7)}
                 </div>
-                <div style={{ ...chipAreaStyle, top: '44%', left: '11%' }}>
+                <div style={{ ...chipAreaStyle, top: '40%', left: '11%' }}>
                     <Chips gameState={this.props.gameState} seatId={7} />
                 </div>
-                <div style={{...playerAreaStyle, top: '54%', left: '2%'}}>
+                <div style={{...playerAreaStyle, top: '52%', left: '2%'}}>
                     {renderSeat(6)}
                     {renderPlayerBar(6)}
                 </div>
-                <div style={{ ...chipAreaStyle, top: '60%', left: '14%' }}>
+                <div style={{ ...chipAreaStyle, top: '58%', left: '14%' }}>
                     <Chips gameState={this.props.gameState} seatId={6} />
                 </div>
                 <div  style={{...playerAreaStyle, top: '75%', left: '24%'}}>
@@ -389,25 +417,25 @@ class Table extends Component {
                 <div style={{ ...chipAreaStyle, top: '65%', left: '64%' }}>
                     <Chips gameState={this.props.gameState} seatId={3} />
                 </div>
-                <div style={{...playerAreaStyle, top: '54%', left: '87%'}}>
+                <div style={{...playerAreaStyle, top: '52%', left: '87%'}}>
                     {renderSeat(2)}
                     {renderPlayerBar(2)}
                 </div>
-                <div style={{ ...chipAreaStyle, top: '60%', left: '78%' }}>
+                <div style={{ ...chipAreaStyle, top: '58%', left: '78%' }}>
                     <Chips gameState={this.props.gameState} seatId={2} />
                 </div>
-                <div style={{...playerAreaStyle, top: '15%', left: '85%'}}>
+                <div style={{...playerAreaStyle, top: '8%', left: '85%'}}>
                     {renderSeat(1)}
                     {renderPlayerBar(1)}
                 </div>
-                <div style={{ ...chipAreaStyle, top: '44%', left: '82%' }}>
+                <div style={{ ...chipAreaStyle, top: '40%', left: '82%' }}>
                     <Chips gameState={this.props.gameState} seatId={1} />
                 </div>
-                <div style={{...playerAreaStyle, left: '60%', top: '-3%'}}>
+                <div style={{...playerAreaStyle, left: '60%', top: '-10%'}}>
                     {renderSeat(0)}
                     {renderPlayerBar(0)}
                 </div>
-                <div style={{ ...chipAreaStyle, top: '26%', left: '61.5%' }}>
+                <div style={{ ...chipAreaStyle, top: '22%', left: '61.5%' }}>
                     <Chips gameState={this.props.gameState} seatId={0} />
                 </div>
                 {/* community cards */}

@@ -17,6 +17,7 @@ class Chat extends Component {
     }
 
     renderMessages = (data) => {
+        console.log('inside renderMessages');
         let messages = data.messages
         const currentUser = this.props.username;
         if (messages === undefined) { return; }
@@ -30,6 +31,7 @@ class Chat extends Component {
     }
 
     sendMessageHandler = (message_text) => {
+        console.log(localStorage.getItem('avatar'));
         let author = this.props.username;
         const messageObject = {
             from: author,
@@ -41,8 +43,9 @@ class Chat extends Component {
 
     addResponseMessageHandler = (data) => {
         let message = JSON.parse(data.message)
+        console.log(message);
         if (message.author !== this.props.username) {
-            addResponseMessage(message.content);
+            addResponseMessage(message.author + ': ' + message.content);
         }
     }
 
@@ -57,6 +60,10 @@ class Chat extends Component {
             <div className="App">
                 <Widget
                     handleNewUserMessage={this.handleNewUserMessage}
+                    // profileAvatar={localStorage.getItem('avatar')}
+                    titleAvatar={localStorage.getItem('avatar')}
+                    title={this.props.username}
+                    subtitle=""
                 />
             </div>
         );

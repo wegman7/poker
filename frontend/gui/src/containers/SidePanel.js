@@ -3,6 +3,8 @@ import axios from 'axios';
 import { Menu } from 'antd';
 import { withRouter } from 'react-router-dom';
 
+// const { SubMenu } = Menu;
+
 class SidePanel extends Component {
 
     constructor(props) {
@@ -50,11 +52,11 @@ class SidePanel extends Component {
         }
 
         return (
-            <div>
-                <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']}>
+            <Menu theme="dark" mode="inline" defaultSelectedKeys={['1']}>
+                {/* <SubMenu key="1" title={<span>Rooms</span>}> */}
                     {listRooms}
-                </Menu>
-            </div>
+                {/* </SubMenu> */}
+            </Menu>
         )
     }
 }

@@ -5,11 +5,10 @@ from .models import Contact, Avatar
 
 @receiver(post_save, sender=User)
 def create_contact(sender, instance, created, **kwargs):
-    print('inside signals')
     if created:
-        avatar = Avatar.objects.get(image='avatars/default.jpg')
-        contact = Contact.objects.create(user=instance)
-        contact.avatar = avatar
+        # avatar = Avatar.objects.get(image='avatars/default_dpVdaor.jpg')
+        contact = Contact.objects.create(user=instance, pk=instance.pk, id=instance.id)
+        # contact.avatar = avatar
         contact.save()
 
 # @receiver(post_save, sender=User)

@@ -3,6 +3,7 @@ import React, { Component } from 'react';
 import ActionBar from '../components/ActionBar';
 import Table from '../components/Table';
 import SitBar from '../components/SitBar';
+// const image = require('../assets/vegas.jpg');
 
 class Room extends Component {
 
@@ -52,8 +53,21 @@ class Room extends Component {
 
     render() {
 
+        const backgroundStyle = { 
+            position: 'absolute', 
+            width: '100%', 
+            height: '120%', 
+            left: '0', 
+            top: '0',
+            backgroundImage: 'linear-gradient(to top, teal, #9ae5e5, teal)'
+        }
+
         const roomStyle = {
             backgroundColor: '#800000',
+            backgroundImage: 'linear-gradient(to top, #800000, #ff6666, #800000)',
+            boxShadow: 'inset 0px 1px 50px #888',
+            border: '.1vw solid',
+            borderImage: 'linear-gradient(to bottom, #258e8e 5%, #000066 100%) 25',
             position: 'relative', /* If you want text inside of it */
             width: '100%',
             paddingTop: '45%', /* 1:1 Aspect Ratio */
@@ -71,27 +85,31 @@ class Room extends Component {
          };
 
         return (
-            <div style={roomStyle}>
-                <div style={tableAreaStyle}>
-                    <Table
+            <div>
+                <div style={backgroundStyle}></div>
+                <div className="room-background"></div>
+                <div style={roomStyle}>
+                    <div style={tableAreaStyle}>
+                        <Table
+                            gameState={this.state.gameState}
+                            username={this.props.username}
+                            sitPlayer={this.sitPlayer}
+                            reserveSeat={this.reserveSeat}
+                            makeSitAction={this.makeSitAction}
+                        />
+                    </div>
+                    <ActionBar
                         gameState={this.state.gameState}
                         username={this.props.username}
-                        sitPlayer={this.sitPlayer}
-                        reserveSeat={this.reserveSeat}
+                        makeAction={this.makeAction}
+                    />
+                    <SitBar
+                        gameState={this.state.gameState}
+                        username={this.props.username}
+                        addChips={this.addChips}
                         makeSitAction={this.makeSitAction}
                     />
                 </div>
-                <ActionBar
-                    gameState={this.state.gameState}
-                    username={this.props.username}
-                    makeAction={this.makeAction}
-                />
-                <SitBar
-                    gameState={this.state.gameState}
-                    username={this.props.username}
-                    addChips={this.addChips}
-                    makeSitAction={this.makeSitAction}
-                />
             </div>
         )
     }
