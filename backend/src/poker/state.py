@@ -160,6 +160,10 @@ class State():
             self.createHandHistory(username + ' has added ' + str(chips))
     
     def orderPlayers(self):
+        print('\n\n')
+        print('before rotate orderPlayers')
+        for the_username, the_player in self.state['players'].items():
+            print(the_username, the_player)
         
         # determine id of dealer
         for username, player in self.state['players'].items():
@@ -188,6 +192,10 @@ class State():
             else:
                 self.state['players'][player[0]]['next_player'] = y[0][0]
                 self.state['players'][player[0]]['previous_player'] = y[i-1][0]
+        print('')
+        print('after rotate orderPlayers')
+        for the_username, the_player in self.state['players'].items():
+            print(the_username, the_player)
     
     def rotateDealerChip(self):
         for username, player in self.state['players'].items():
@@ -239,6 +247,10 @@ class State():
                             player['chips'] = player['chips'] - player['chips_in_pot']
                         self.state['pot'] += player['chips_in_pot']
         
+        print('end of post blinds')
+        for username, player in self.state['players'].items():
+            print(username, player)
+        
         if number_of_players > 2:
             for username, player in self.state['players'].items():
                 if not player['sitting_out']:
@@ -275,6 +287,10 @@ class State():
                         next_next_next_player['spotlight'] = True
     
     def rotateSpotlight(self, username):
+        print('\n\n')
+        print('before rotate spotlight')
+        for the_username, the_player in self.state['players'].items():
+            print(the_username, the_player)
         player = self.state['players'][username]
         player['spotlight'] = False
         if player['last_to_act']:
@@ -283,8 +299,11 @@ class State():
             players_active = [player for player in self.state['players'].values() if not player['all_in'] and player['in_hand']]
             if len(players_active) < 2:
                 self.state['show_hands'] = True
+            print('should be calling betweenStreets 1')
+            print(username)
             task = threading.Thread(target=self.betweenStreets, args=())
             task.start()
+            return
         else:
             next_player = self.state['players'][player['next_player']]
             while True:
@@ -295,6 +314,7 @@ class State():
                         players_active = [player for player in self.state['players'].values() if not player['all_in'] and player['in_hand']]
                         if len(players_active) < 2:
                             self.state['show_hands'] = True
+                        print('should be calling betweenStreets 2')
                         task = threading.Thread(target=self.betweenStreets, args=())
                         task.start()
                         break
@@ -303,6 +323,10 @@ class State():
                 else:
                     next_player['spotlight'] = True
                     break
+        print('')
+        print('after rotate spotlight')
+        for the_username, the_player in self.state['players'].items():
+            print(the_username, the_player)
     
     def determineFirstAndLastToAct(self):
         for username, player in self.state['players'].items():
@@ -328,6 +352,10 @@ class State():
                             break
                         else:
                             previous_player = self.state['players'][previous_player['previous_player']]
+        print('\n\n')
+        print('at the end of determinefirstandlasttoact')
+        for the_username, the_player in self.state['players'].items():
+            print(the_username, the_player)
     
     def startGame(self):
         print('starting game...')
@@ -662,6 +690,7 @@ class State():
         self.returnState(None)
     
     def betweenStreets(self):
+        print('inside betweenStreets')
         time.sleep(2)
         self.dealStreet()
         self.state['last_action'] = None
