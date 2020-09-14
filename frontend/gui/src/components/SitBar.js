@@ -128,7 +128,7 @@ class SitBar extends Component {
                     <div>
                         <button style={{ ...sitInStyle, color: sitInColor }} className="button" onClick={() => this.sitIn(this.props.makeSitAction, this.props.username)}>Sit in</button>
                         <button style={{ ...standUpStyle, color: standUpColor }} className="button" onClick={() => this.standUp(this.props.makeSitAction, this.props.username)}>Stand up</button>
-                        <button style={{ ...addChipsStyle, color: sitInColor}} className="button" onClick={() => this.setState({renderAddChipsForm: true})}>Add chips</button>
+                        <button style={{ ...addChipsStyle, color: 'whiteSmoke' }} className="button" onClick={() => this.setState({renderAddChipsForm: true})}>Add chips</button>
                         {addChipsForm()}
                     </div>
                 )
@@ -137,7 +137,7 @@ class SitBar extends Component {
                     <div>
                         <button style={{ ...sitOutStyle, color: sitOutColor }} className="button" onClick={() => this.sitOut(this.props.makeSitAction, this.props.username)}>Sit out</button>
                         <button style={{ ...standUpStyle, color: standUpColor }} className="button" onClick={() => this.standUp(this.props.makeSitAction, this.props.username)}>Stand up</button>
-                        <button style={{ ...addChipsStyle, color: sitInColor }} className="button" onClick={() => this.setState({renderAddChipsForm: true})}>Add chips</button>
+                        <button style={{ ...addChipsStyle, color: 'whiteSmoke' }} className="button" onClick={() => this.setState({renderAddChipsForm: true})}>Add chips</button>
                         {addChipsForm()}
                     </div>
                 );

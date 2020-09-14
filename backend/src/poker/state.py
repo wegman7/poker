@@ -1,14 +1,18 @@
-import time, asyncio, threading
+import time, asyncio, threading, json, copy
 from asgiref.sync import async_to_sync, sync_to_async
+from channels.layers import get_channel_layer
+from django.contrib.auth.models import User
+from .models import Contact, Message, Room
 from treys import Card, Evaluator
 from .deck import Deck
 
 BIG_BLIND = .5
 SMALL_BLIND = .25
 
-class State():
+class State(threading.Thread):
 
-    def __init__(self, createHandHistory, returnState):
+    def __init__(self, room_name):
+        super().__init__(daemon=True)
         self.state = {
             'players': {},
             'spotlight': None,
@@ -25,10 +29,12 @@ class State():
             'last_action': None,
             'last_action_username': None
         }
-
-        self.createHandHistory, self.returnState = createHandHistory, returnState
+        # self.updated_state = self.state
 
         self.convert_username_to_seat_id = {}
+
+        self.room_name = room_name
+        self.channel_layer = get_channel_layer()
     
     def initializePlayer(self, username, seat_id, chips, avatar):
 
@@ -69,8 +75,27 @@ class State():
             'username': username,
             'seat_id': seat_id,
             'reserved': True,
-            'sitting_out': True
+            'sitting_out': True,
+            'in_hand': False,
+            'sit_in_after_hand': False,
+            'sit_out_after_hand': False,
+            'stand_up_after_hand': False,
+            'add_chips_after_hand': 0
         }
+    
+    # def run(self):
+    #     print('starting game...')
+    #     while True:
+    #         print('ticking')
+    #         # self.returnState()
+    #         time.sleep(1)
+    
+    def makeAction(self, data):
+        print(data['command'])
+        self.commands[data['command']](self, data)
+        self.makeSitAction()
+        # self.updated_state = copy.deepcopy(self.state)
+        self.returnState()
 
     def addPlayer(self, data):
 
@@ -96,19 +121,19 @@ class State():
     
     def makeSitAction(self):
         for username, player in dict(self.state['players']).items():
-            if player['sit_out_after_hand']:
+            if player['sit_out_after_hand'] and (not self.state['hand_in_action'] or not player['in_hand']):
                 player['sitting_out'] = True
                 player['sit_out_after_hand'] = False
-            if player['sit_in_after_hand']:
+            if player['sit_in_after_hand'] and (not self.state['hand_in_action'] or not player['in_hand']):
                 player['sitting_out'] = False
                 player['sit_in_after_hand'] = False
-            if player['stand_up_after_hand']:
-                self.state['players'].pop(username)
-            if player['add_chips_after_hand'] > 0:
+            if player['add_chips_after_hand'] > 0 and (not self.state['hand_in_action'] or not player['in_hand']):
                 player['chips'] += player['add_chips_after_hand']
                 self.createHandHistory(username + ' added ' + str(player['add_chips_after_hand']))
                 player['add_chips_after_hand'] = 0
-
+            if player['stand_up_after_hand'] and (not self.state['hand_in_action'] or not player['in_hand']):
+                self.state['players'].pop(username)
+                self.orderPlayers()
     
     def sitIn(self, data):
         username = data['username']
@@ -121,7 +146,7 @@ class State():
         else:
             player['sitting_out'] = False
         number_of_players = len({k:v for k, v in self.state['players'].items() if not v['sitting_out']})
-        if number_of_players > 1:
+        if number_of_players > 1 and not self.state['hand_in_action']:
             self.startGame()
             self.orderPlayers()
             self.newHand()
@@ -129,7 +154,8 @@ class State():
     def sitOut(self, data):
         username = data['username']
         player = self.state['players'][username]
-        if self.state['hand_in_action']:
+        # if self.state['hand_in_action']:
+        if player['in_hand']:
             if player['sit_out_after_hand'] == False:
                 player['sit_out_after_hand'] = True
             else:
@@ -140,19 +166,22 @@ class State():
     def standUp(self, data):
         username = data['username']
         player = self.state['players'][username]
-        if self.state['hand_in_action']:
+        # if self.state['hand_in_action']:
+        if player['in_hand']:
             if player['stand_up_after_hand'] == False:
                 player['stand_up_after_hand'] = True
             else:
                 player['stand_up_after_hand'] = False
         else:
             self.state['players'].pop(username)
+            self.orderPlayers()
 
     def addChips(self, data):
         username = data['username']
         chips = float(data['chips'])
         player = self.state['players'][username]
-        if self.state['hand_in_action']:
+        # if self.state['hand_in_action']:
+        if player['in_hand']:
             player['add_chips_after_hand'] = chips
             self.createHandHistory(username + ' has requested ' + str(chips) + ', and will be added after the hand')
         else:
@@ -160,22 +189,12 @@ class State():
             self.createHandHistory(username + ' has added ' + str(chips))
     
     def orderPlayers(self):
-        
-        # determine id of dealer
-        for username, player in self.state['players'].items():
-            if player['dealer']:
-                dealer_id = player['seat_id']
-
-        # create placeholder id that will give us an absolute order
-        for username, player in self.state['players'].items():
-            if player['seat_id'] <= dealer_id:
-                player['placeholder_id'] = player['seat_id'] + 9
-            else:
-                player['placeholder_id'] = player['seat_id']
-
         # create a sorted list based on the absolute order, then remove players sitting out
-        y = sorted(self.state['players'].items(), key=lambda item: item[1]['placeholder_id'])
-        y = [player for player in y if not player[1]['sitting_out']]
+        y = sorted(self.state['players'].items(), key=lambda item: item[1]['seat_id'])
+        y = [player for player in y]
+        # we need to check if there's only one player at the table because we call orderPlayers from makeSitAction after a player stands up
+        if len(y) < 2:
+            return
 
         # update x according to sorted list
         for i, player in enumerate(y):
@@ -244,8 +263,14 @@ class State():
                 if not player['sitting_out']:
                     # the player left of the dealer will always start in the splotlight; we wil use this to determine blinds and then move spotlight to left of bb
                     if player['dealer']:
+                        # look for next player that is not sitting out
                         next_player = self.state['players'][player['next_player']]
-                        next_player['small_blind'] = True
+                        while True:
+                            if next_player['sitting_out']:
+                                next_player = self.state['players'][next_player['next_player']]
+                            else:
+                                next_player['small_blind'] = True
+                                break
 
                         # if player doesn't have enough to match blind, he must go all in
                         if next_player['chips'] <= self.state['small_blind']:
@@ -257,22 +282,34 @@ class State():
                             next_player['chips'] = next_player['chips'] - next_player['chips_in_pot']
                         self.state['pot'] += next_player['chips_in_pot']
 
-                        next_next_player = self.state['players'][next_player['next_player']]
-                        next_next_player['big_blind'] = True
-                        next_next_player['last_to_act'] = True
+                        # look for the next player that is not sitting out
+                        next_player = self.state['players'][next_player['next_player']]
+                        while True:
+                            if next_player['sitting_out']:
+                                next_player = self.state['players'][next_player['next_player']]
+                            else:
+                                next_player['big_blind'] = True
+                                next_player['last_to_act'] = True
+                                break
 
                         # if player doesn't have enough to match blind, he must go all in
-                        if next_next_player['chips'] <= self.state['big_blind']:
-                            next_next_player['chips_in_pot'] = next_next_player['chips']
-                            next_next_player['chips'] = 0
-                            next_next_player['all_in'] = True
+                        if next_player['chips'] <= self.state['big_blind']:
+                            next_player['chips_in_pot'] = next_player['chips']
+                            next_player['chips'] = 0
+                            next_player['all_in'] = True
                         else:
-                            next_next_player['chips_in_pot'] = self.state['big_blind']
-                            next_next_player['chips'] = next_next_player['chips'] - next_next_player['chips_in_pot']
-                        self.state['pot'] += next_next_player['chips_in_pot']
+                            next_player['chips_in_pot'] = self.state['big_blind']
+                            next_player['chips'] = next_player['chips'] - next_player['chips_in_pot']
+                        self.state['pot'] += next_player['chips_in_pot']
 
-                        next_next_next_player = self.state['players'][next_next_player['next_player']]
-                        next_next_next_player['spotlight'] = True
+                        # look for the next player that is not sitting out
+                        next_player = self.state['players'][next_player['next_player']]
+                        while True:
+                            if next_player['sitting_out']:
+                                next_player = self.state['players'][next_player['next_player']]
+                            else:
+                                next_player['spotlight'] = True
+                                break
     
     def rotateSpotlight(self, username):
         player = self.state['players'][username]
@@ -282,9 +319,12 @@ class State():
             # if there are not at least two players with chips behind, show cards and deal until showdown
             players_active = [player for player in self.state['players'].values() if not player['all_in'] and player['in_hand']]
             if len(players_active) < 2:
+                self.returnState()
+                time.sleep(3)
                 self.state['show_hands'] = True
-            task = threading.Thread(target=self.betweenStreets, args=())
-            task.start()
+            self.betweenStreets()
+            # task = threading.Thread(target=self.betweenStreets, args=())
+            # task.start()
         else:
             next_player = self.state['players'][player['next_player']]
             while True:
@@ -295,8 +335,9 @@ class State():
                         players_active = [player for player in self.state['players'].values() if not player['all_in'] and player['in_hand']]
                         if len(players_active) < 2:
                             self.state['show_hands'] = True
-                        task = threading.Thread(target=self.betweenStreets, args=())
-                        task.start()
+                        self.betweenStreets()
+                        # task = threading.Thread(target=self.betweenStreets, args=())
+                        # task.start()
                         break
                     else:
                         next_player = self.state['players'][next_player['next_player']]
@@ -307,7 +348,6 @@ class State():
     def determineFirstAndLastToAct(self):
         for username, player in self.state['players'].items():
             if player['dealer']:
-                player['last_to_act'] = True
                 next_player = self.state['players'][player['next_player']]
                 previous_player = self.state['players'][player['previous_player']]
                 # determine first to act
@@ -318,12 +358,11 @@ class State():
                     else:
                         next_player = self.state['players'][next_player['next_player']]
                 # determine last to act
-                while True:
-                    if player['in_hand'] and not next_player['all_in']:
-                        player['last_to_act'] = True
-                        break
-                    else:
-                        if previous_player['in_hand'] and not next_player['all_in']:
+                if player['in_hand'] and not player['all_in']:
+                    player['last_to_act'] = True
+                else:
+                    while True:
+                        if previous_player['in_hand'] and not previous_player['all_in']:
                             previous_player['last_to_act'] = True
                             break
                         else:
@@ -331,22 +370,26 @@ class State():
     
     def startGame(self):
         print('starting game...')
-        self.deck = Deck()
+        # self.deck = Deck()
         
-        # deal one card to each active player
-        cards = []
-        for username, player in self.state['players'].items():
-            if not player['sitting_out']:
-                player['hole_cards'].append(self.deck.dealCard())
-                cards.append(player['hole_cards'])
+        # # deal one card to each active player
+        # cards = []
+        # for username, player in self.state['players'].items():
+        #     if not player['sitting_out']:
+        #         player['hole_cards'].append(self.deck.dealCard())
+        #         cards.append(player['hole_cards'])
         
-        high_card = self.deck.compareHighcards(cards)
+        # high_card = self.deck.compareHighcards(cards)
         
-        # give the dealer chip to the player with the high card
-        for username, player in self.state['players'].items():
-            if not player['sitting_out']:
-                if player['hole_cards'][0] == high_card:
-                    player['dealer'] = True
+        # # give the dealer chip to the player with the high card
+        # for username, player in self.state['players'].items():
+        #     if not player['sitting_out']:
+        #         if player['hole_cards'][0] == high_card:
+        #             player['dealer'] = True
+
+        # for now just remove the compare high card
+        players_sorted = sorted(self.state['players'], key=lambda player: self.state['players'][player]['seat_id'])
+        self.state['players'][players_sorted[0]]['dealer'] = True
 
     def newHand(self):
         print('starting new hand...')
@@ -365,12 +408,17 @@ class State():
             player['all_in'] = False
             player['in_hand'] = False
             player['hole_cards'] = []
+            player['chips_in_pot'] = 0
             if player['chips'] == 0:
                 player['sitting_out'] = True
             if not player['sitting_out']:
                 number_of_players += 1
         
         if number_of_players < 2:
+            print('stopping game...')
+            # if we don't set dealer to false on every player, we might get two dealers when the game restarts
+            for username, player in self.state['players'].items():
+                player['dealer'] = False
             return None
         
         self.createHandHistory('New hand')
@@ -441,17 +489,18 @@ class State():
         players_active = [player for player in self.state['players'].values() if not player['all_in'] and player['in_hand']]
         if len(players_active) < 2:
             self.state['show_hands'] = True
-            task = threading.Thread(target=self.betweenStreets, args=())
-            task.start()
+            self.betweenStreets()
+            # task = threading.Thread(target=self.betweenStreets, args=())
+            # task.start()
             # self.dealStreet()
         else:
             self.determineFirstAndLastToAct()
     
-    def endHand(self, winner_username):
+    # def endHand(self, winner_username):
 
-        # pause for a few seconds before next hand
-        task = threading.Thread(target=self.betweenHands, args=(winner_username, ))
-        task.start()
+    #     # pause for a few seconds before next hand
+    #     task = threading.Thread(target=self.betweenHands, args=(winner_username, ))
+    #     task.start()
     
     def fold(self, data):
         username = data['username']
@@ -473,8 +522,10 @@ class State():
         if len(players_active) < 2:
             winner_username = players_active[0][0]
             self.createHandHistory(winner_username + ' wins ' + str(self.state['pot']))
-            return self.endHand(winner_username)
+            return self.betweenHands(winner_username)
+            # return self.endHand(winner_username)
 
+        # self.makeSitAction(username)
         self.rotateSpotlight(username)
     
     def check(self, data):
@@ -508,6 +559,7 @@ class State():
         self.state['last_action_username'] = username
 
         self.rotateSpotlight(username)
+        # self.returnState()
     
     def bet(self, data):
         username = data['username']
@@ -539,7 +591,11 @@ class State():
         
         previous_player = self.state['players'][my_player['previous_player']]
         while True:
-            if previous_player['in_hand']:
+            # if we are the only one that's not all in, we must go to the next street by calling rotateSpotlight
+            if previous_player['username'] == username:
+                my_player['last_to_act'] = True
+                break
+            if previous_player['in_hand'] and not previous_player['all_in']:
                 previous_player['last_to_act'] = True
                 break
             else:
@@ -550,6 +606,9 @@ class State():
     
     def showdown(self):
         print('inside showdown')
+        self.state['show_hands'] = True
+        self.returnState()
+        time.sleep(3)
         # convert cards to correct format for treys library
         first_card_board = self.state['community_cards'][0]['rank'] + self.state['community_cards'][0]['suit'].lower()
         second_card_board = self.state['community_cards'][1]['rank'] + self.state['community_cards'][1]['suit'].lower()
@@ -632,17 +691,15 @@ class State():
                     self.state['pot'] -= payout
                 break
         
-        # # display the hands on the front end for 5 seconds
-        self.state['show_hands'] = True
-        
-        self.endHand(winner)
+        self.betweenHands(winner)
     
     def betweenHands(self, winner_username):
 
+        self.returnState()
         time.sleep(3)
 
         winner = self.state['players'][winner_username]
-        # put all active chips in the pot, then return them to the winner. the pot will be "0" if there was a split pot, since it was already divided
+        # put all active chips in the pot, then return them to the winner. the pot will be "0" if there was a split pot/ side pot where somebody went all in, since it was already divided
         if self.state['pot'] != 0:
             winner['chips_in_pot'] = self.state['pot']
             winner['chips'] += self.state['pot']
@@ -652,18 +709,84 @@ class State():
         self.state['previous_street_pot'] = 0
         self.state['last_action'] = None
         self.state['last_action_username'] = None
-        self.returnState(None)
+        self.returnState()
 
         time.sleep(3)
         self.state['hand_in_action'] = False
-        winner['chips_in_pot'] = 0
         self.makeSitAction()
         self.newHand()
-        self.returnState(None)
+        self.returnState()
     
     def betweenStreets(self):
-        time.sleep(2)
-        self.dealStreet()
+        print('inside betweenStreets')
+        self.returnState()
+        time.sleep(1.5)
         self.state['last_action'] = None
         self.state['last_action_username'] = None
-        self.returnState(None)
+        self.dealStreet()
+        self.returnState()
+    
+    def returnState(self):
+        print('\n\n\n')
+        for player in self.state['players']:
+            print('')
+            for attribute in self.state['players'][player]:
+                print(attribute, self.state['players'][player][attribute])
+        content = {
+            'type': 'state',
+            'state': self.state
+        }
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_name,
+            {
+                "type": "sendMessage",
+                "text": json.dumps(content)
+            }
+        )
+    
+    def messageToDict(self, message):
+        return {
+            'id': message.id,
+            'author': message.contact.user.username,
+            'content': message.content,
+            'timestamp': str(message.timestamp)
+        }
+    
+    def createHandHistory(self, data):
+        user = User.objects.get(username='Dealer')
+        contact = Contact.objects.get(user=user)
+        room_id = self.room_name.replace('poker-', '')
+        chat = Room.objects.get(id=room_id)
+        new_message = Message.objects.create(
+            contact = contact,
+            content = data
+        )
+        chat.messages.add(new_message)
+        new_message_json = json.dumps(self.messageToDict(new_message))
+        content = {
+            'type': 'new_message',
+            'message': new_message_json
+        }
+        # this sends the new message to the chat consumer
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_name.replace('poker-', 'chat-'),
+            {
+                "type": "sendMessageToGroup",
+                "text": json.dumps(content)
+            }
+        )
+    
+    actions = []
+    
+    commands = {
+        'reserve': reserveSeat,
+        'sit': addPlayer,
+        'sit_in': sitIn,
+        'sit_out': sitOut,
+        'stand_up': standUp,
+        'add_chips': addChips,
+        'fold': fold,
+        'check': check,
+        'call': call,
+        'bet': bet,
+    }

@@ -15,7 +15,7 @@ class Home extends Component {
                             Click on the room to the right to connect.
                         </div>
                         :
-                        <div style={{ padding: '20px' }}>
+                        <div style={{ padding: '50px' }}>
                             Welcome to <span className="logo">Wegman's Casino</span>! <Link to="/signup/">Create an account</Link> to get started.
                         </div>
                     }

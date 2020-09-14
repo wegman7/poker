@@ -1,3 +1,4 @@
+// const url = window.location.host;
 const url = '127.0.0.1:8000';
 
 export default class WebSocketChat {
@@ -91,7 +92,7 @@ export class WebSocketPoker {
     
     onOpen = (event) => {
         console.log('open', event);
-        this.fetchState();
+        // this.fetchState();
     }
     onError = (error) => {
         console.log('error', error);

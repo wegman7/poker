@@ -10,14 +10,14 @@ class Room extends Component {
     state = {}
 
     componentDidMount() {
-        this.props.authCheckState();
-        if (this.props.username === null) { this.props.history.push('/'); return; }
+        // this.props.authCheckState();
+        // if (this.props.username === null) { this.props.history.push('/'); return; }
         this.props.pokerSocket.addCallbacks(this.updateState, this.seatReserved);
     }
 
     componentDidUpdate() {
-        this.props.authCheckState();
-        if (this.props.username === null) { this.props.history.push('/'); return; }
+        // this.props.authCheckState();
+        // if (this.props.username === null) { this.props.history.push('/'); return; }
         this.props.pokerSocket.addCallbacks(this.updateState, this.seatReserved);
     }
 

@@ -11,7 +11,7 @@ class Contact(models.Model):
     user = models.ForeignKey(User, related_name='friends', on_delete=models.CASCADE)
     friends = models.ManyToManyField('self', blank=True)
     avatar = models.ForeignKey(Avatar, on_delete=models.PROTECT, null=True, blank=True)
-    test = models.TextField(blank=True)
+    # test = models.TextField(blank=True)
 
     def username(self):
         return self.user.username

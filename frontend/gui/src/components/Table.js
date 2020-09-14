@@ -259,7 +259,7 @@ class Table extends Component {
                     playerBarStyle = { ...playerBarStyle, background: 'linear-gradient(to bottom, #f2f2f2 5%, #a6a6a6 100%)', color: 'black' }
                     if (player.username === this.props.username) {
                         let audio = new Audio(mp3_file);
-                        audio.play();
+                        // audio.play();
                     }
                 } else { playerBarStyle = { ...playerBarStyle, background: 'linear-gradient(to bottom, #8c8c8c 5%, #404040 100%)', color: 'white' }}
 
