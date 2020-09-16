@@ -98,11 +98,11 @@
   left: 0;
   top: 0;
   /* background: url('assets/vegas.jpg') no-repeat center center fixed; */
-  background: url('assets/poker_chip_svg.png') center center fixed;
+  /* background: url('assets/poker_chip_svg.png') center center fixed;
   background-repeat: space;
   background-repeat: round;
   background-size: 100px;
-  opacity: 30%;
+  opacity: 30%; */
 }
 
 .button {

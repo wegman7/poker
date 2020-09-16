@@ -38,6 +38,7 @@ class State(threading.Thread):
     
     def initializePlayer(self, username, seat_id, chips, avatar):
 
+        self.createHandHistory(username + ' has bought in for ' + str(chips))
         self.convert_username_to_seat_id[username] = seat_id
 
         return {
