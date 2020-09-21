@@ -24,8 +24,8 @@ class ContactSerializer(serializers.ModelSerializer):
             'friends',
             'friends_usernames',
             'avatar',
-            'avatar_url',
-            'test'
+            'avatar_url'
+            # 'test'
         )
         # lookup_field = 'username'
         # extra_kwargs = {

@@ -104,7 +104,7 @@ class ActionBar extends Component {
     };
 
     UNSAFE_componentWillReceiveProps(newProps) {
-        if (newProps.username === null || newProps.gameState.players[newProps.username] === undefined) { return; }
+        if (newProps.username === null || newProps.gameState ===undefined || newProps.gameState.players[newProps.username] === undefined) { return; }
         if (newProps.gameState.current_bet === 0) {
             this.setState({
                 minimumBet: newProps.gameState.big_blind,
@@ -186,7 +186,12 @@ class ActionBar extends Component {
     }
 
     potBet = () => {
-        const pot = this.props.gameState.pot * 2;
+        var pot;
+        if (this.props.gameState.current_bet > 0) {
+            pot = this.props.gameState.current_bet * 3 + (this.props.gameState.pot - this.props.gameState.current_bet) - this.props.gameState.players[this.props.username].chips_in_pot;
+        } else {
+            pot = this.props.gameState.pot;
+        }
         if (pot <= this.state.maxBet) {
             this.setState({
                 betAmount: pot
