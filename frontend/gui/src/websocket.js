@@ -98,7 +98,7 @@ export class WebSocketPoker {
         console.log('error', error);
     }
     onMessage = (event) => {
-        console.log('message', event);
+        // console.log('message', event);
         let data = JSON.parse(event.data);
         this.types[data.type](data);
     }

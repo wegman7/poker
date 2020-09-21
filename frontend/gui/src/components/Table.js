@@ -89,7 +89,6 @@ class Table extends Component {
     state = { displayLastAction: true }
 
     UNSAFE_componentWillReceiveProps(newProps) {
-        console.log(newProps);
         setTimeout(() => this.setState({ displayLastAction: false }), 2000);
         this.setState({ displayLastAction: true });
     }
@@ -441,7 +440,7 @@ class Table extends Component {
                 {/* community cards */}
                 <div style={communityCardsAreaStyle}>
                     <div className="logo" style={logoStyle}>
-                        Wegman's Casino
+                        Wegman's Cardroom
                     </div>
                     {renderCommunityCards()}
                     <CommunityChips gameState={this.props.gameState} />

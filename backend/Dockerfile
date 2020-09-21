@@ -16,6 +16,6 @@ RUN mkdir -p /vol/web/static
 
 RUN python manage.py collectstatic
 
-COPY /src/media /vol/web/media
+# COPY /src/media /vol/web/media
 
 # CMD ["entrypoint.sh"]

@@ -13,7 +13,8 @@ services:
     ports:
     - '8000:8000'
     volumes:
-      - static_data:/vol/web
+      - static_data:/vol/web/static
+      - media_data:/vol/web/media
     command: uwsgi --socket :8000 --master --enable-threads --module poker_base.wsgi
     environment:
       - DEBUG=1
@@ -44,7 +45,8 @@ services:
     build:
       context: ./proxy
     volumes:
-     - static_data:/vol
+     - static_data:/vol/static
+     - media_data:/vol/media
     ports:
      - '80:80'
     depends_on:
@@ -60,3 +62,4 @@ services:
 volumes:
   static_data:
   postgres_data:
+  media_data:

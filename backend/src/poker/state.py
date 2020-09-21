@@ -468,6 +468,8 @@ class State(threading.Thread):
             player['chips_in_pot'] = 0
             player['spotlight'] = False
             player['last_to_act'] = False
+        self.returnState()
+        time.sleep(1)
         
         if self.state['street'] == 'preflop':
             number_of_cards = 3
@@ -721,7 +723,7 @@ class State(threading.Thread):
     def betweenStreets(self):
         print('inside betweenStreets')
         self.returnState()
-        time.sleep(1.5)
+        time.sleep(1)
         self.state['last_action'] = None
         self.state['last_action_username'] = None
         self.dealStreet()

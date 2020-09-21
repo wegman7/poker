@@ -3,14 +3,14 @@ import axios from 'axios';
 
 class ChooseAvatar extends Component {
 
-    state = { myAvatarId: null, myAvatarUrl: null }
+    state = { myAvatarId: null, myAvatarUrl: null, avatars: null }
 
     componentDidUpdate() {
         if (this.props.username === null) { this.props.history.push('/'); return; }
     }
 
     componentDidMount() {
-        axios.get('api/avatar/')
+        axios.get('/api/avatar/')
             .then(response => {
                 const avatars = response.data;
                 this.setState({ avatars: avatars });
