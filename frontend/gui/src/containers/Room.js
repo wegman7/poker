@@ -4,20 +4,21 @@ import ActionBar from '../components/ActionBar';
 import Table from '../components/Table';
 import SitBar from '../components/SitBar';
 // const image = require('../assets/vegas.jpg');
+const poker_chip_svg = require('../assets/poker_chip_svg.png');
 
 class Room extends Component {
 
     state = {}
 
     componentDidMount() {
-        // this.props.authCheckState();
-        // if (this.props.username === null) { this.props.history.push('/'); return; }
+        this.props.authCheckState();
+        if (this.props.username === null) { this.props.history.push('/'); return; }
         this.props.pokerSocket.addCallbacks(this.updateState, this.seatReserved);
     }
 
     componentDidUpdate() {
-        // this.props.authCheckState();
-        // if (this.props.username === null) { this.props.history.push('/'); return; }
+        this.props.authCheckState();
+        if (this.props.username === null) { this.props.history.push('/'); return; }
         this.props.pokerSocket.addCallbacks(this.updateState, this.seatReserved);
     }
 
@@ -62,6 +63,13 @@ class Room extends Component {
             backgroundImage: 'linear-gradient(to top, teal, #9ae5e5, teal)'
         }
 
+        const backgroundOverlay = {
+            background: `url(${poker_chip_svg}) center center fixed`,
+            backgroundRepeat: 'space',
+            backgroundSize: '100px',
+            opacity: '30%'
+        }
+
         const roomStyle = {
             backgroundColor: '#800000',
             backgroundImage: 'linear-gradient(to top, #800000, #ff6666, #800000)',
@@ -87,7 +95,7 @@ class Room extends Component {
         return (
             <div>
                 <div style={backgroundStyle}></div>
-                <div className="room-background"></div>
+                <div className="room-background" style={backgroundOverlay}></div>
                 <div style={roomStyle}>
                     <div style={tableAreaStyle}>
                         <Table

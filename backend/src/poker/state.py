@@ -189,26 +189,6 @@ class State(threading.Thread):
             self.createHandHistory(username + ' has added ' + str(chips))
     
     def orderPlayers(self):
-<<<<<<< HEAD
-        print('\n\n')
-        print('before rotate orderPlayers')
-        for the_username, the_player in self.state['players'].items():
-            print(the_username, the_player)
-        
-        # determine id of dealer
-        for username, player in self.state['players'].items():
-            if player['dealer']:
-                dealer_id = player['seat_id']
-
-        # create placeholder id that will give us an absolute order
-        for username, player in self.state['players'].items():
-            if player['seat_id'] <= dealer_id:
-                player['placeholder_id'] = player['seat_id'] + 9
-            else:
-                player['placeholder_id'] = player['seat_id']
-
-=======
->>>>>>> use_threading
         # create a sorted list based on the absolute order, then remove players sitting out
         y = sorted(self.state['players'].items(), key=lambda item: item[1]['seat_id'])
         y = [player for player in y]
@@ -354,17 +334,9 @@ class State(threading.Thread):
                 self.returnState()
                 time.sleep(3)
                 self.state['show_hands'] = True
-<<<<<<< HEAD
-            print('should be calling betweenStreets 1')
-            print(username)
-            task = threading.Thread(target=self.betweenStreets, args=())
-            task.start()
-            return
-=======
             self.betweenStreets()
             # task = threading.Thread(target=self.betweenStreets, args=())
             # task.start()
->>>>>>> use_threading
         else:
             next_player = self.state['players'][player['next_player']]
             while True:
@@ -375,15 +347,9 @@ class State(threading.Thread):
                         players_active = [player for player in self.state['players'].values() if not player['all_in'] and player['in_hand']]
                         if len(players_active) < 2:
                             self.state['show_hands'] = True
-<<<<<<< HEAD
-                        print('should be calling betweenStreets 2')
-                        task = threading.Thread(target=self.betweenStreets, args=())
-                        task.start()
-=======
                         self.betweenStreets()
                         # task = threading.Thread(target=self.betweenStreets, args=())
                         # task.start()
->>>>>>> use_threading
                         break
                     else:
                         next_player = self.state['players'][next_player['next_player']]
@@ -773,24 +739,19 @@ class State(threading.Thread):
     
     def betweenStreets(self):
         print('inside betweenStreets')
-<<<<<<< HEAD
-        time.sleep(2)
-        self.dealStreet()
-=======
         self.returnState()
         time.sleep(1.5)
->>>>>>> use_threading
         self.state['last_action'] = None
         self.state['last_action_username'] = None
         self.dealStreet()
         self.returnState()
     
     def returnState(self):
-        print('\n\n\n')
-        for player in self.state['players']:
-            print('')
-            for attribute in self.state['players'][player]:
-                print(attribute, self.state['players'][player][attribute])
+        # print('\n\n\n')
+        # for player in self.state['players']:
+        #     print('')
+        #     for attribute in self.state['players'][player]:
+        #         print(attribute, self.state['players'][player][attribute])
         content = {
             'type': 'state',
             'state': self.state

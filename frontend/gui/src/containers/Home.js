@@ -16,7 +16,7 @@ class Home extends Component {
                         </div>
                         :
                         <div style={{ padding: '50px' }}>
-                            Welcome to <span className="logo">Wegman's Casino</span>! <Link to="/signup/">Create an account</Link> to get started.
+                            Welcome to <span className="logo">Wegman's Cardroom</span>! <Link to="/signup/">Create an account</Link> to get started.
                         </div>
                     }
                 </div>
