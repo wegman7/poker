@@ -2,9 +2,9 @@ import React, { Component } from 'react';
 
 const actionBarContainerStyle = { 
     position: 'absolute', 
-    height: '29%', 
+    height: '40%', 
     width: '33%', 
-    top: '87.5%', 
+    top: '89%', 
     left: '66.5%', 
     // backgroundColor: 'red' 
 }
@@ -244,7 +244,7 @@ class ActionBar extends Component {
                             :
                             <div>
                                 <button style={foldButtonStyle} className="button" onClick={() => this.fold(myPlayer)}>Fold</button>
-                                <button style={callButtonStyle} className="button" onClick={() => this.call(myPlayer)}>{callOrAllIn}</button>
+                                <button style={callButtonStyle} className="button" onClick={() => this.call(myPlayer)}>{callOrAllIn}<br />{Math.min(this.props.gameState.current_bet - myPlayer.chips_in_pot, myPlayer.chips + myPlayer.chips_in_pot)}</button>
                             </div>
                         }
                         {
@@ -263,9 +263,9 @@ class ActionBar extends Component {
                                 {
                                     this.props.gameState.current_bet === 0
                                     ?
-                                    <input style={betButtonStyle} className="button" type="submit" value="Bet" />
+                                    <button style={betButtonStyle} className="button" type="submit">Bet<br />{this.state.betAmount}</button>
                                     :
-                                    <input style={betButtonStyle} className="button" type="submit" value={raiseOrAllIn} />
+                                    <button style={betButtonStyle} className="button" type="submit">{raiseOrAllIn}<br />{this.state.betAmount}</button>
                                 }
                             </form>
                             :

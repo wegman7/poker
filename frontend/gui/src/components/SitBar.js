@@ -2,11 +2,11 @@ import React, { Component } from 'react';
 
 const sitBarContainerStyle = {
     position: 'absolute', 
-    height: '22%', 
+    height: '29%', 
     width: '27%', 
-    top: '94.5%', 
+    top: '100%', 
     left: '0%', 
-    // backgroundColor: 'red' 
+    backgroundColor: 'red' 
 }
 const sitOutStyle = {
     position: 'absolute',

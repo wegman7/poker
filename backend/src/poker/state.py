@@ -320,46 +320,36 @@ class State(threading.Thread):
                                 break
     
     def rotateSpotlight(self, username):
-        print('\n\n')
-        print('before rotate spotlight')
-        for the_username, the_player in self.state['players'].items():
-            print(the_username, the_player)
         player = self.state['players'][username]
         player['spotlight'] = False
         if player['last_to_act']:
-            # self.dealStreet()
             # if there are not at least two players with chips behind, show cards and deal until showdown
             players_active = [player for player in self.state['players'].values() if not player['all_in'] and player['in_hand']]
             if len(players_active) < 2:
                 self.returnState()
-                time.sleep(3)
+                time.sleep(2)
                 self.state['show_hands'] = True
+                time.sleep(2)
             self.betweenStreets()
-            # task = threading.Thread(target=self.betweenStreets, args=())
-            # task.start()
         else:
             next_player = self.state['players'][player['next_player']]
             while True:
                 if not next_player['in_hand'] or next_player['all_in']:
                     if next_player['last_to_act']:
-                        # self.dealStreet()
                         # if there are not at least two players with chips behind, show cards and deal until showdown
                         players_active = [player for player in self.state['players'].values() if not player['all_in'] and player['in_hand']]
                         if len(players_active) < 2:
+                            self.returnState()
+                            time.sleep(2)
                             self.state['show_hands'] = True
+                            time.sleep(2)
                         self.betweenStreets()
-                        # task = threading.Thread(target=self.betweenStreets, args=())
-                        # task.start()
                         break
                     else:
                         next_player = self.state['players'][next_player['next_player']]
                 else:
                     next_player['spotlight'] = True
                     break
-        print('')
-        print('after rotate spotlight')
-        for the_username, the_player in self.state['players'].items():
-            print(the_username, the_player)
     
     def determineFirstAndLastToAct(self):
         for username, player in self.state['players'].items():
@@ -383,10 +373,6 @@ class State(threading.Thread):
                             break
                         else:
                             previous_player = self.state['players'][previous_player['previous_player']]
-        print('\n\n')
-        print('at the end of determinefirstandlasttoact')
-        for the_username, the_player in self.state['players'].items():
-            print(the_username, the_player)
     
     def startGame(self):
         print('starting game...')
@@ -429,7 +415,7 @@ class State(threading.Thread):
             player['in_hand'] = False
             player['hole_cards'] = []
             player['chips_in_pot'] = 0
-            if player['chips'] == 0:
+            if not player['reserved'] and player['chips'] == 0:
                 player['sitting_out'] = True
             if not player['sitting_out']:
                 number_of_players += 1
@@ -487,6 +473,8 @@ class State(threading.Thread):
             player['chips_in_pot'] = 0
             player['spotlight'] = False
             player['last_to_act'] = False
+        self.returnState()
+        time.sleep(1.5)
         
         if self.state['street'] == 'preflop':
             number_of_cards = 3
@@ -510,17 +498,8 @@ class State(threading.Thread):
         if len(players_active) < 2:
             self.state['show_hands'] = True
             self.betweenStreets()
-            # task = threading.Thread(target=self.betweenStreets, args=())
-            # task.start()
-            # self.dealStreet()
         else:
             self.determineFirstAndLastToAct()
-    
-    # def endHand(self, winner_username):
-
-    #     # pause for a few seconds before next hand
-    #     task = threading.Thread(target=self.betweenHands, args=(winner_username, ))
-    #     task.start()
     
     def fold(self, data):
         username = data['username']
@@ -543,9 +522,7 @@ class State(threading.Thread):
             winner_username = players_active[0][0]
             self.createHandHistory(winner_username + ' wins ' + str(self.state['pot']))
             return self.betweenHands(winner_username)
-            # return self.endHand(winner_username)
 
-        # self.makeSitAction(username)
         self.rotateSpotlight(username)
     
     def check(self, data):
@@ -579,7 +556,6 @@ class State(threading.Thread):
         self.state['last_action_username'] = username
 
         self.rotateSpotlight(username)
-        # self.returnState()
     
     def bet(self, data):
         username = data['username']
@@ -671,7 +647,6 @@ class State(threading.Thread):
             winners = {k for k, v in results.items() if v == winning_hand}
             print('winners ', winners)
             print('side pots ', self.state['side_pot'])
-
 
             # find minimum side pot of all winners
             if len(self.state['side_pot']) > 0:

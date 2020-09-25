@@ -33,7 +33,7 @@ const tableStyle = {
 };
 const playerAreaStyle = { 
     position: 'absolute', 
-    // backgroundColor: 'blue', 
+    backgroundColor: 'blue', 
     width: '11%', 
     height: '31%' 
 };
