@@ -4,9 +4,9 @@ const sitBarContainerStyle = {
     position: 'absolute', 
     height: '29%', 
     width: '27%', 
-    top: '100%', 
+    top: '103%', 
     left: '0%', 
-    backgroundColor: 'red' 
+    // backgroundColor: 'red' 
 }
 const sitOutStyle = {
     position: 'absolute',

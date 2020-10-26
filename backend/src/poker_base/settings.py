@@ -79,8 +79,8 @@ CHANNEL_LAYERS = {
         'CONFIG': {
             "hosts": [('127.0.0.1', 6379)],
             # "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
-            "capacity": 1500,
-            "expiry": 10
+            "capacity": 2000,
+            "expiry": 6
         },
     },
 }

@@ -2,7 +2,7 @@ from channels.auth import AuthMiddlewareStack
 from channels.routing import ProtocolTypeRouter, URLRouter, ChannelNameRouter
 import poker.routing
 
-from poker.consumers import PokerGameConsumer
+from poker.consumers import TitanConsumer, HenryConsumer
 
 application = ProtocolTypeRouter({
     # (http->django views is added by default)
@@ -11,5 +11,8 @@ application = ProtocolTypeRouter({
             poker.routing.websocket_urlpatterns
         )
     ),
-    "channel": ChannelNameRouter({"poker_game": PokerGameConsumer}),
+    "channel": ChannelNameRouter({
+        "poker-Titan": TitanConsumer,
+        "poker-Henry": HenryConsumer
+        }),
 })

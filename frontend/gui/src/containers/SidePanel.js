@@ -35,8 +35,8 @@ class SidePanel extends Component {
         }
     }
 
-    rerouteToRoom = (room_id) => {
-        this.props.initializeSocket(room_id);
+    rerouteToRoom = (room_name) => {
+        this.props.initializeSocket(room_name);
         this.props.history.push('/room/');
     }
 
@@ -45,7 +45,7 @@ class SidePanel extends Component {
         let listRooms = ' ';
         if (this.state.rooms !== undefined) {
             listRooms = this.state.rooms.map(room => 
-                <Menu.Item key={room.id} onClick={() => this.rerouteToRoom(room.id)}>
+                <Menu.Item key={room.id} onClick={() => this.rerouteToRoom(room.name)}>
                     {room.name}
                 </Menu.Item>
             );

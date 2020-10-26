@@ -34,10 +34,10 @@ class App extends Component {
     console.log('inside componentDidUpdate (App.js)')
   }
 
-  initializeSocket = (room_id) => {
+  initializeSocket = (room_name) => {
     this.disconnectFromSocket();
-    let chatSocket = new WebSocketChat(room_id);
-    let pokerSocket = new WebSocketPoker(room_id)
+    let chatSocket = new WebSocketChat(room_name);
+    let pokerSocket = new WebSocketPoker(room_name)
     this.setState({
       chatSocket: chatSocket,
       pokerSocket: pokerSocket,

@@ -4,7 +4,7 @@ const actionBarContainerStyle = {
     position: 'absolute', 
     height: '40%', 
     width: '33%', 
-    top: '89%', 
+    top: '92%', 
     left: '66.5%', 
     // backgroundColor: 'red' 
 }
@@ -104,19 +104,21 @@ class ActionBar extends Component {
     };
 
     UNSAFE_componentWillReceiveProps(newProps) {
-        if (newProps.username === null || newProps.gameState ===undefined || newProps.gameState.players[newProps.username] === undefined) { return; }
-        if (newProps.gameState.current_bet === 0) {
-            this.setState({
-                minimumBet: newProps.gameState.big_blind,
-                betAmount: newProps.gameState.big_blind,
-                maxBet: newProps.gameState.players[this.props.username].chips + newProps.gameState.players[this.props.username].chips_in_pot
-            });
-        } else {
-            this.setState({
-                minimumBet: newProps.gameState.current_bet * 2,
-                betAmount: newProps.gameState.current_bet * 2,
-                maxBet: newProps.gameState.players[newProps.username].chips + newProps.gameState.players[newProps.username].chips_in_pot
-            });
+        if (newProps.username === null || newProps.gameState === undefined || newProps.gameState.players[newProps.username] === undefined) { return; }
+        if (this.props.gameState !== undefined && (newProps.gameState.time !== this.props.gameState.time || this.state.betAmount === 0)) {
+            if (newProps.gameState.current_bet === 0) {
+                this.setState({
+                    minimumBet: newProps.gameState.big_blind,
+                    betAmount: newProps.gameState.big_blind,
+                    maxBet: newProps.gameState.players[this.props.username].chips + newProps.gameState.players[this.props.username].chips_in_pot
+                });
+            } else {
+                this.setState({
+                    minimumBet: newProps.gameState.current_bet * 2,
+                    betAmount: newProps.gameState.current_bet * 2,
+                    maxBet: newProps.gameState.players[newProps.username].chips + newProps.gameState.players[newProps.username].chips_in_pot
+                });
+            }
         }
     }
 

@@ -52,4 +52,4 @@ class Room(models.Model):
         return participants
 
     def __str__(self):
-        return '%s' % self.id
+        return '%s' % self.name

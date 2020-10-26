@@ -24,8 +24,8 @@ class ChatConsumer(WebsocketConsumer):
         self.commands[data['command']](self, data)
 
     def retreiveMessages(self, data):
-        room_id = data['room_id']
-        chat = Room.objects.get(id=room_id)
+        room_name = data['room_name']
+        chat = Room.objects.get(name=room_name)
         messages = reversed(chat.messages.all().order_by('-timestamp')[:100])
         data = []
         for message in messages:
@@ -52,8 +52,8 @@ class ChatConsumer(WebsocketConsumer):
     def createMessage(self, data):
         user = User.objects.get(username=data['author'])
         contact = Contact.objects.get(user=user)
-        room_id = self.room_name.replace('chat-', '')
-        chat = Room.objects.get(id=room_id)
+        room_name = self.room_name.replace('chat-', '')
+        chat = Room.objects.get(name=room_name)
         new_message = Message.objects.create(
             contact = contact,
             content = data['content']
@@ -102,9 +102,10 @@ class PlayerConsumer(AsyncWebsocketConsumer):
 
     async def connect(self):
         self.room_name = 'poker-' + self.scope['url_route']['kwargs']['room_name']
+        print(self.room_name)
         await self.channel_layer.group_add(self.room_name, self.channel_name)
         print('connected')
-        await self.channel_layer.send('poker_game', {
+        await self.channel_layer.send(self.room_name, {
             'type': 'connectToTable',
             'room_name': self.room_name
         })
@@ -116,7 +117,7 @@ class PlayerConsumer(AsyncWebsocketConsumer):
         if data['command'] == 'disconnect':
             await self.disconnectFromRoom()
         else:
-            await self.channel_layer.send('poker_game', {
+            await self.channel_layer.send(self.room_name, {
                 'type': 'makeAction',
                 'data': data
             })
@@ -148,11 +149,11 @@ class PlayerConsumer(AsyncWebsocketConsumer):
         'disconnect': disconnectFromRoom,
     }
 
-class PokerGameConsumer(SyncConsumer):
+class TitanConsumer(SyncConsumer):
 
     def __init__(self, *args, **kwargs):
         print('INIT')
-        self.room_name = 'poker-5'
+        self.room_name = 'poker-Titan'
         self.state = State(self.room_name)
         self.state.start()
 
@@ -162,43 +163,18 @@ class PokerGameConsumer(SyncConsumer):
     
     def makeAction(self, event):
         self.state.makeAction(event['data'])
-    
-    # def reserveSeat(self, event):
-    #     self.state.reserveSeat(event['data'])
-    #     # self.returnState(None)
 
-    # def addPlayer(self, event):
-    #     self.state.addPlayer(event['data'])
-    #     # self.returnState(None)
-    
-    # def sitIn(self, event):
-    #     self.state.sitIn(event['data'])
-    #     # self.returnState(None)
+class HenryConsumer(SyncConsumer):
 
-    # def sitOut(self, event):
-    #     self.state.sitOut(event['data'])
-    #     # self.returnState(None)
+    def __init__(self, *args, **kwargs):
+        print('INIT')
+        self.room_name = 'poker-Henry'
+        self.state = State(self.room_name)
+        self.state.start()
 
-    # def standUp(self, event):
-    #     self.state.standUp(event['data'])
-    #     # self.returnState(None)
-
-    # def addChips(self, event):
-    #     self.state.addChips(event['data'])
-    #     # self.returnState(None)
+    def connectToTable(self, event):
+        print('CONNECT', event)
+        self.state.returnState()
     
-    # def fold(self, event):
-    #     self.statefold(event['data'])
-    #     # self.returnState(None)
-    
-    # def check(self, event):
-    #     self.state.check(event['data'])
-    #     # self.returnState(None)
-    
-    # def call(self, event):
-    #     self.state.call(event['data'])
-    #     # self.returnState(None)
-    
-    # def bet(self, event):
-    #     self.state.bet(event['data'])
-    #     # self.returnState(None)
+    def makeAction(self, event):
+        self.state.makeAction(event['data'])

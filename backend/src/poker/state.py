@@ -27,9 +27,11 @@ class State(threading.Thread):
             'previous_street_pot': 0.0,
             'show_hands': False,
             'last_action': None,
-            'last_action_username': None
+            'last_action_username': None,
+            'time': time.time()
         }
-        # self.updated_state = self.state
+        self.updated_state = copy.deepcopy(self.state)
+        self.actions = []
 
         self.convert_username_to_seat_id = {}
 
@@ -77,25 +79,37 @@ class State(threading.Thread):
             'reserved': True,
             'sitting_out': True,
             'in_hand': False,
+            'dealer': False,
             'sit_in_after_hand': False,
             'sit_out_after_hand': False,
             'stand_up_after_hand': False,
             'add_chips_after_hand': 0
         }
     
-    # def run(self):
-    #     print('starting game...')
-    #     while True:
-    #         print('ticking')
-    #         # self.returnState()
-    #         time.sleep(1)
+    def run(self):
+        print('starting game...')
+        while True:
+            # print('ticking')
+            if self.actions:
+                self.makeActions()
+                # self.updated_state = copy.deepcopy(self.state)
+                self.returnState()
+            time.sleep(.1)
+    
+    def makeActions(self):
+        for action in self.actions:
+            self.commands[action['command']](self, action)
+            # this way we know when to update things on the frontend
+            if action['command'] == 'bet' or action['command'] == 'call' or action['command'] == 'fold' or action['command'] == 'check':
+                self.state['time'] = time.time()
+        self.actions = []
+        self.makeSitAction()
     
     def makeAction(self, data):
         print(data['command'])
-        self.commands[data['command']](self, data)
-        self.makeSitAction()
-        # self.updated_state = copy.deepcopy(self.state)
-        self.returnState()
+        self.actions.append(data)
+        # self.makeSitAction()
+        # self.returnState()
 
     def addPlayer(self, data):
 
@@ -131,7 +145,10 @@ class State(threading.Thread):
                 player['chips'] += player['add_chips_after_hand']
                 self.createHandHistory(username + ' added ' + str(player['add_chips_after_hand']))
                 player['add_chips_after_hand'] = 0
-            if player['stand_up_after_hand'] and (not self.state['hand_in_action'] or not player['in_hand']):
+            if player['stand_up_after_hand'] and (not self.state['hand_in_action'] or not player['in_hand']) and not player['dealer']:
+                # we need to rotate the dealer chip before the player stands up or there will be no dealer chip to rotate once they're gone
+                # if player['dealer']:
+                #     self.rotateDealerChip()
                 self.state['players'].pop(username)
                 self.orderPlayers()
     
@@ -154,7 +171,6 @@ class State(threading.Thread):
     def sitOut(self, data):
         username = data['username']
         player = self.state['players'][username]
-        # if self.state['hand_in_action']:
         if player['in_hand']:
             if player['sit_out_after_hand'] == False:
                 player['sit_out_after_hand'] = True
@@ -166,21 +182,24 @@ class State(threading.Thread):
     def standUp(self, data):
         username = data['username']
         player = self.state['players'][username]
-        # if self.state['hand_in_action']:
         if player['in_hand']:
             if player['stand_up_after_hand'] == False:
                 player['stand_up_after_hand'] = True
             else:
                 player['stand_up_after_hand'] = False
         else:
-            self.state['players'].pop(username)
-            self.orderPlayers()
+            # we need to rotate the dealer chip before the player stands up or there will be no dealer chip to rotate once they're gone
+            if player['dealer']:
+                # self.rotateDealerChip()
+                player['stand_up_after_hand'] = True
+            else:
+                self.state['players'].pop(username)
+                self.orderPlayers()
 
     def addChips(self, data):
         username = data['username']
         chips = float(data['chips'])
         player = self.state['players'][username]
-        # if self.state['hand_in_action']:
         if player['in_hand']:
             player['add_chips_after_hand'] = chips
             self.createHandHistory(username + ' has requested ' + str(chips) + ', and will be added after the hand')
@@ -207,10 +226,6 @@ class State(threading.Thread):
             else:
                 self.state['players'][player[0]]['next_player'] = y[0][0]
                 self.state['players'][player[0]]['previous_player'] = y[i-1][0]
-        print('')
-        print('after rotate orderPlayers')
-        for the_username, the_player in self.state['players'].items():
-            print(the_username, the_player)
     
     def rotateDealerChip(self):
         for username, player in self.state['players'].items():
@@ -261,10 +276,6 @@ class State(threading.Thread):
                             player['chips_in_pot'] = self.state['big_blind']
                             player['chips'] = player['chips'] - player['chips_in_pot']
                         self.state['pot'] += player['chips_in_pot']
-        
-        print('end of post blinds')
-        for username, player in self.state['players'].items():
-            print(username, player)
         
         if number_of_players > 2:
             for username, player in self.state['players'].items():
@@ -326,6 +337,7 @@ class State(threading.Thread):
             # if there are not at least two players with chips behind, show cards and deal until showdown
             players_active = [player for player in self.state['players'].values() if not player['all_in'] and player['in_hand']]
             if len(players_active) < 2:
+                # self.updated_state = copy.deepcopy(self.state)
                 self.returnState()
                 time.sleep(2)
                 self.state['show_hands'] = True
@@ -339,6 +351,7 @@ class State(threading.Thread):
                         # if there are not at least two players with chips behind, show cards and deal until showdown
                         players_active = [player for player in self.state['players'].values() if not player['all_in'] and player['in_hand']]
                         if len(players_active) < 2:
+                            # self.updated_state = copy.deepcopy(self.state)
                             self.returnState()
                             time.sleep(2)
                             self.state['show_hands'] = True
@@ -400,6 +413,7 @@ class State(threading.Thread):
     def newHand(self):
         print('starting new hand...')
 
+        self.state['time'] = time.time()
         self.state['show_hands'] = False
         self.state['community_cards'] = []
         self.deck = Deck()
@@ -473,6 +487,7 @@ class State(threading.Thread):
             player['chips_in_pot'] = 0
             player['spotlight'] = False
             player['last_to_act'] = False
+        # self.updated_state = copy.deepcopy(self.state)
         self.returnState()
         time.sleep(1.5)
         
@@ -603,6 +618,7 @@ class State(threading.Thread):
     def showdown(self):
         print('inside showdown')
         self.state['show_hands'] = True
+        # self.updated_state = copy.deepcopy(self.state)
         self.returnState()
         time.sleep(3)
         # convert cards to correct format for treys library
@@ -659,7 +675,14 @@ class State(threading.Thread):
                 # split the pot if necessary
                 payout = minimum_side_pot_of_winners/len(winners)
                 for winner in winners:
-                    self.createHandHistory(winner + ' wins side pot of ' + str(payout) + ' with ' + results[winner]['hand_class_string'])
+                    self.createHandHistory(
+                        winner + ' shows ' 
+                        + self.state['players'][winner]['hole_cards'][0]['rank'] 
+                        + self.state['players'][winner]['hole_cards'][0]['suit']
+                        + self.state['players'][winner]['hole_cards'][1]['rank']
+                        + self.state['players'][winner]['hole_cards'][1]['suit']
+                        + ' and wins ' + str(payout) + ' with ' + results[winner]['hand_class_string']
+                    )
                     self.state['players'][winner]['chips'] += payout
                     self.state['players'][winner]['chips_in_pot'] += payout
                     self.state['pot'] -= payout
@@ -680,7 +703,14 @@ class State(threading.Thread):
                 # split the pot if necessary
                 payout = self.state['pot']/len(winners)
                 for winner in winners:
-                    self.createHandHistory(winner + ' wins side pot of ' + str(payout) + ' with ' + results[winner]['hand_class_string'])
+                    self.createHandHistory(
+                        winner + ' shows ' 
+                        + self.state['players'][winner]['hole_cards'][0]['rank'] 
+                        + self.state['players'][winner]['hole_cards'][0]['suit']
+                        + self.state['players'][winner]['hole_cards'][1]['rank']
+                        + self.state['players'][winner]['hole_cards'][1]['suit']
+                        + ' and wins ' + str(payout) + ' with ' + results[winner]['hand_class_string']
+                    )
                     self.state['players'][winner]['chips'] += payout
                     self.state['players'][winner]['chips_in_pot'] += payout
                     self.state['pot'] -= payout
@@ -690,6 +720,7 @@ class State(threading.Thread):
     
     def betweenHands(self, winner_username):
 
+        # self.updated_state = copy.deepcopy(self.state)
         self.returnState()
         time.sleep(3)
 
@@ -704,21 +735,25 @@ class State(threading.Thread):
         self.state['previous_street_pot'] = 0
         self.state['last_action'] = None
         self.state['last_action_username'] = None
+        # self.updated_state = copy.deepcopy(self.state)
         self.returnState()
 
         time.sleep(3)
         self.state['hand_in_action'] = False
         self.makeSitAction()
         self.newHand()
+        # self.updated_state = copy.deepcopy(self.state)
         self.returnState()
     
     def betweenStreets(self):
         print('inside betweenStreets')
+        # self.updated_state = copy.deepcopy(self.state)
         self.returnState()
         time.sleep(1.5)
         self.state['last_action'] = None
         self.state['last_action_username'] = None
         self.dealStreet()
+        # self.updated_state = copy.deepcopy(self.state)
         self.returnState()
     
     def returnState(self):
@@ -729,6 +764,7 @@ class State(threading.Thread):
         #         print(attribute, self.state['players'][player][attribute])
         content = {
             'type': 'state',
+            # 'state': self.updated_state
             'state': self.state
         }
         async_to_sync(self.channel_layer.group_send)(
@@ -750,8 +786,8 @@ class State(threading.Thread):
     def createHandHistory(self, data):
         user = User.objects.get(username='Dealer')
         contact = Contact.objects.get(user=user)
-        room_id = self.room_name.replace('poker-', '')
-        chat = Room.objects.get(id=room_id)
+        room_name = self.room_name.replace('poker-', '')
+        chat = Room.objects.get(name=room_name)
         new_message = Message.objects.create(
             contact = contact,
             content = data

@@ -3,9 +3,9 @@ const url = '127.0.0.1:8000';
 
 export default class WebSocketChat {
 
-    constructor(room_id) {
-        this.room_id = room_id
-        const path = 'ws://' + url + '/ws/chat/' + this.room_id + '/';
+    constructor(room_name) {
+        this.room_name = room_name
+        const path = 'ws://' + url + '/ws/chat/' + this.room_name + '/';
         this.socket_ref = new WebSocket(path);
 
         this.socket_ref.onopen = this.onOpen.bind(this);
@@ -60,7 +60,7 @@ export default class WebSocketChat {
     fetchMessages = () => {
         let message = {
             command: 'fetch_messages',
-            room_id: this.room_id
+            room_name: this.room_name
         }
         this.sendMessage(message);
     }
@@ -79,9 +79,9 @@ export default class WebSocketChat {
 
 export class WebSocketPoker {
 
-    constructor(room_id) {
-        this.room_id = room_id
-        const path = 'ws://' + url + '/ws/poker/' + this.room_id + '/';
+    constructor(room_name) {
+        this.room_name = room_name
+        const path = 'ws://' + url + '/ws/poker/' + this.room_name + '/';
         this.socket_ref = new WebSocket(path);
 
         this.socket_ref.onopen = this.onOpen.bind(this);
@@ -128,7 +128,7 @@ export class WebSocketPoker {
         console.log('fetch_state');
         let message = {
             command: 'fetch_state',
-            room_id: this.room_id
+            room_name: this.room_name
         }
         this.sendMessage(message);
     }
