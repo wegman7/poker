@@ -89,7 +89,7 @@ class Table extends Component {
     state = { displayLastAction: true }
 
     UNSAFE_componentWillReceiveProps(newProps) {
-        console.log(this.props.gameState, newProps);
+        // console.log(this.props.gameState, newProps);
         if (this.props.gameState !== undefined && newProps.gameState.time !== this.props.gameState.time) {
             setTimeout(() => this.setState({ displayLastAction: false }), 2000);
             this.setState({ 

@@ -9,7 +9,7 @@ import axios from 'axios';
 
 import reducer from './store/reducers/auth';
 
-axios.defaults.baseURL = 'http://127.0.0.1:8000';
+axios.defaults.baseURL = '';
 
 const composeEnhances = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose
 
