@@ -1,0 +1,84 @@
+version: '3.7'
+
+services:
+  # redis:
+  #   image: redis
+  #   command: redis-server
+  #   ports:
+  #     - '6379:6379'
+  
+  # backend:
+  #   build:
+  #     context: .
+  #   ports:
+  #   - '8000:8000'
+  #   volumes:
+  #     - static_data:/vol/web/static
+  #     - media_data:/vol/web/media
+  #   # command: uwsgi --socket :8000 --master --enable-threads --module poker_base.wsgi
+  #   command: python manage.py runserver 0.0.0.0:8000
+  #   environment:
+  #     - DEBUG=1
+  #   depends_on:
+  #     - db
+
+  # channels:
+  #   build:
+  #     context: .
+  #   command: daphne -b 0.0.0.0 -p 8001 poker_base.asgi:application
+  #   volumes:
+  #     - ./src:/src
+  #   ports:
+  #     - '8001:8001'
+  #   links:
+  #     - redis
+  
+  # worker:
+  #   build:
+  #     context: .
+  #   command: python manage.py runworker poker-Titan
+  #   volumes:
+  #     - ./src:/src
+  #   links:
+  #   - redis
+  #   depends_on:
+  #    - backend
+  
+  # worker2:
+  #   build:
+  #     context: .
+  #   command: python manage.py runworker poker-Henry
+  #   volumes:
+  #     - ./src:/src
+  #   links:
+  #   - redis
+  #   depends_on:
+  #    - backend
+  
+  # proxy:
+  #   build:
+  #     context: ./proxy
+  #   volumes:
+  #    - static_data:/vol/static
+  #    - media_data:/vol/media
+  #   ports:
+  #    - '80:80'
+  #   depends_on:
+  #     - backend
+  
+  db:
+    image: postgres
+    environment:
+      - "POSTGRES_HOST_AUTH_METHOD=trust"
+      - POSTGRES_DB=poker_db
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    ports:
+      - '5432:5432'
+    # volumes:
+    #   - postgres_data:/var/lib/postgresql/data
+
+# volumes:
+  # static_data:
+  # postgres_data:
+  # media_data:

@@ -6,9 +6,9 @@ from .models import Contact, Avatar
 @receiver(post_save, sender=User)
 def create_contact(sender, instance, created, **kwargs):
     if created:
-        # avatar = Avatar.objects.get(image='avatars/default_dpVdaor.jpg')
+        avatar = Avatar.objects.get(image='avatars/default.png')
         contact = Contact.objects.create(user=instance, pk=instance.pk, id=instance.id)
-        # contact.avatar = avatar
+        contact.avatar = avatar
         contact.save()
 
 # @receiver(post_save, sender=User)

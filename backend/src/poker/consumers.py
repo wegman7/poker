@@ -93,7 +93,7 @@ class ChatConsumer(WebsocketConsumer):
         async_to_sync(self.channel_layer.group_discard)(self.room_name, self.channel_name)
         pass
 
-from .state import State
+from .game_engine import GameEngine
 
 TIME_BANK = 30
 
@@ -123,7 +123,7 @@ class PlayerConsumer(AsyncWebsocketConsumer):
             })
     
     async def sendMessage(self, event):
-        print('sending state...')
+        
         await self.send(text_data=event['text'])
 
     async def disconnectFromRoom(self):
@@ -133,48 +133,33 @@ class PlayerConsumer(AsyncWebsocketConsumer):
         print('disconnect')
         # Called when the socket closes
         await self.channel_layer.group_discard(self.room_name, self.channel_name)
-    
-    commands = {
-        # 'fetch_state': returnState,
-        'reserve': 'reserveSeat',
-        'sit': 'addPlayer',
-        'sit_in': 'sitIn',
-        'sit_out': 'sitOut',
-        'stand_up': 'standUp',
-        'add_chips': 'addChips',
-        'fold': 'fold',
-        'check': 'check',
-        'call': 'call',
-        'bet': 'bet',
-        'disconnect': disconnectFromRoom,
-    }
 
 class TitanConsumer(SyncConsumer):
 
     def __init__(self, *args, **kwargs):
         print('INIT')
         self.room_name = 'poker-Titan'
-        self.state = State(self.room_name)
-        self.state.start()
+        self.game_engine = GameEngine(self.room_name)
+        self.game_engine.start()
 
     def connectToTable(self, event):
         print('CONNECT', event)
-        self.state.returnState()
+        self.game_engine.returnState()
     
     def makeAction(self, event):
-        self.state.makeAction(event['data'])
+        self.game_engine.makeAction(event['data'])
 
 class HenryConsumer(SyncConsumer):
 
     def __init__(self, *args, **kwargs):
         print('INIT')
         self.room_name = 'poker-Henry'
-        self.state = State(self.room_name)
-        self.state.start()
+        self.game_engine = GameEngine(self.room_name)
+        self.game_engine.start()
 
     def connectToTable(self, event):
         print('CONNECT', event)
-        self.state.returnState()
+        self.game_engine.returnState()
     
     def makeAction(self, event):
-        self.state.makeAction(event['data'])
+        self.game_engine.makeAction(event['data'])

@@ -73,12 +73,12 @@ TEMPLATES = [
 WSGI_APPLICATION = 'poker_base.wsgi.application'
 ASGI_APPLICATION = 'poker_base.routing.application'
 
+# need to change locahost to name of docker service when using docker-compose
 CHANNEL_LAYERS = {
     'default': {
         'BACKEND': 'channels_redis.core.RedisChannelLayer',
         'CONFIG': {
-            "hosts": [('127.0.0.1', 6379)],
-            # "hosts": [os.environ.get('REDIS_URL', 'redis://localhost:6379')],
+            "hosts": [('localhost', 6379)],
             "capacity": 2000,
             "expiry": 6
         },
@@ -89,10 +89,15 @@ CHANNEL_LAYERS = {
 # Database
 # https://docs.djangoproject.com/en/3.0/ref/settings/#databases
 
+# need to change locahost to name of docker service when using docker-compose
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': 'poker_db',
+        'USER': 'postgres',
+        'PASSWORD': 'password',
+        'HOST': 'localhost',
+        'PORT': 5432,
     }
 }
 
