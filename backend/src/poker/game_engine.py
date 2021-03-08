@@ -8,12 +8,15 @@ from .deck import Deck
 
 BIG_BLIND = .5
 SMALL_BLIND = .25
+TIME_BANK = 10
 
-LONG_SLEEP = 0 # 3
-MEDIUM_SLEEP = 0 # 2
-SHORT_SLEEP = 0 # 1.5
+LONG_SLEEP = 3 # 3
+MEDIUM_SLEEP = 2 # 2
+SHORT_SLEEP = 1.5 # 1.5
 
-REFRESH_RATE = .2
+REFRESH_RATE = .1
+
+# THERE MAY BE A BUG WHERE A PLAYER CANNOT SIT OUT
 
 class Player():
 
@@ -33,6 +36,7 @@ class Player():
         self.stand_up_after_hand = False
         self.add_chips_after_hand = 0
         self.dealer_placeholder = False
+        self.spotlight = False
 
     def joinGame(self, gameEngine, state, action):
 
@@ -43,7 +47,7 @@ class Player():
         self.chips_in_pot = 0
         self.time = None
         self.hole_cards = []
-        self.spotlight = False
+        # self.spotlight = False
         self.draw_for_dealer = False
         self.small_blind = False
         self.big_blind = False
@@ -53,6 +57,7 @@ class Player():
         self.all_in = False
         self.reserved = False
         self.avatar = avatar
+        self.max_win = None
         
         gameEngine.decideIfGameShouldStart()
     
@@ -95,8 +100,7 @@ class Player():
                 self.becomeDealerPlaceholder()
                 self.sitting_out = True
             else:
-                self.state.players.pop(username)
-                self.orderPlayers()
+                return gameEngine.removePlayer(self.username)
 
     def addChips(self, gameEngine, state, action):
 
@@ -214,15 +218,15 @@ class State():
         self.big_blind = BIG_BLIND
         self.small_blind = SMALL_BLIND
         self.pot = 0.0
-        self.side_pot = {}
         self.current_bet = BIG_BLIND
         self.hand_in_action = False
         self.previous_street_pot = 0.0
         self.show_hands = False
         self.last_action = None
         self.last_action_username = None
-        self.time = time.time()
-
+        self.time_bank = TIME_BANK
+        self.time_start = time.time()
+        self.time_pause = True
 
 event = threading.Event()
 
@@ -237,34 +241,6 @@ class GameEngine(threading.Thread):
         self.room_name = room_name
         self.channel_layer = get_channel_layer()
     
-    def initializePlayer(self, username, seat_id, chips, avatar):
-
-        return {
-            'username': username,
-            'seat_id': seat_id,
-            'chips': chips,
-            'chips_in_pot': 0,
-            'time': None,
-            'hole_cards': [],
-            'spotlight': False,
-            'sitting_out': False,
-            'dealer': False,
-            'draw_for_dealer': False,
-            'small_blind': False,
-            'big_blind': False,
-            'in_hand': False,
-            'last_to_act': False,
-            'previous_player': None,
-            'next_player': None,
-            'all_in': False,
-            'reserved': False,
-            'sit_in_after_hand': False,
-            'sit_out_after_hand': False,
-            'stand_up_after_hand': False,
-            'add_chips_after_hand': 0,
-            'avatar': avatar
-        }
-    
     def run(self):
 
         print('starting game...')
@@ -274,6 +250,22 @@ class GameEngine(threading.Thread):
             time.sleep(REFRESH_RATE)
     
     def tick(self):
+
+        # automatically fold a player if the time_bank goes to zero
+        if not self.state.time_pause:
+            self.updateTimebank()
+        
+        if self.state.time_bank < 0:
+            for username in self.state.players:
+                if self.state.players[username].spotlight:
+                    self.actions.append({
+                        'command': 'fold', 
+                        'username': username, 
+                        'chips': self.state.players[username].chips, 
+                        'chipsInPot': self.state.players[username].chips_in_pot
+                    })
+                    self.state.players[username].sitting_out = True
+
         if self.actions:
             actions_thread = threading.Thread(target=self.makeActions, args=(self.actions.copy(),))
             actions_thread.start()
@@ -284,25 +276,41 @@ class GameEngine(threading.Thread):
         # PROBABLY BETTER TO DO IT THIS WAY. NOT SURE EXACTLY HOW TO HANDLE SITACTIONS YET
 
         for action in actions:
+
             # if it's a new player, we need to create an instance
             if action['username'] not in self.state.players:
                 new_player = Player()
                 self.state.players[action['username']] = new_player
             
+            if not self.isLegalMove(action):
+                continue
+            
             player = self.state.players[action['username']]
-
             getattr(player, action['command'])(self, self.state, action)
 
         self.makeSitActions()
+    
+    def resetTimebank(self):
+        self.state.time_bank = TIME_BANK
+        self.state.time_start = time.time()
+
+    def updateTimebank(self):
+        self.state.time_bank -= time.time() - self.state.time_start
+        self.state.time_start = time.time()
+        print('timebank ', self.state.time_bank)
     
     # there should be a method to determine if a move is legal
     def isLegalMove(self, action):
 
         # stop player from making fold/call/bet if they don't have spotlight
+        if (action['command'] == 'fold' or action['command'] == 'call' or action['command'] == 'bet'):
+            self.resetTimebank()
+            if not self.state.players[action['username']].spotlight:
+                return False
 
         # stop player from sitting in if they have no chips
 
-        pass
+        return True
     
     def makeAction(self, data):
 
@@ -315,7 +323,9 @@ class GameEngine(threading.Thread):
     
     def makeSitActions(self):
 
+
         for username, player in self.state.players.items():
+            print(username, player.sit_out_after_hand)
             if player.sit_out_after_hand and (not self.state.hand_in_action or not player.in_hand):
                 player.sitting_out = True
                 player.sit_out_after_hand = False
@@ -326,14 +336,16 @@ class GameEngine(threading.Thread):
                 player.chips += player.add_chips_after_hand
                 self.createHandHistory(username + ' added ' + str(player.add_chips_after_hand))
                 player.add_chips_after_hand = 0
-            if player.stand_up_after_hand and (not self.state.hand_in_action or not player.in_hand) and not player.dealer:
-                # we need to rotate the dealer chip before the player stands up or there will be no dealer chip to rotate once they're gone
+            if player.stand_up_after_hand and (not self.state.hand_in_action or not player.in_hand):
                 if player.dealer:
                     player.becomeDealerPlaceholder()
                     player.sitting_out = True
                 else:
-                    self.state.players.pop(username)
-                    self.orderPlayers()
+                    return self.removePlayer(username)
+    
+    def removePlayer(self, username):
+        self.state.players.pop(username)
+        self.orderPlayers()
 
     def decideIfGameShouldStart(self):
 
@@ -478,6 +490,8 @@ class GameEngine(threading.Thread):
                                 break
     
     def rotateSpotlight(self, player):
+
+        self.state.time_pause = True
         
         player.spotlight = False
         if player.last_to_act:
@@ -510,8 +524,15 @@ class GameEngine(threading.Thread):
                 else:
                     next_player.spotlight = True
                     break
+
+        self.resetTimebank()
+        self.state.time_pause = False
     
     def determineFirstAndLastToAct(self):
+
+        self.resetTimebank()
+        self.state.time_pause = False
+
         for username, player in self.state.players.items():
             if player.dealer:
                 next_player = self.state.players[player.next_player]
@@ -545,7 +566,6 @@ class GameEngine(threading.Thread):
 
         print('starting new hand...')
 
-        self.state.time = time.time()
         self.state.show_hands = False
         self.state.community_cards = []
         self.deck = Deck()
@@ -561,6 +581,7 @@ class GameEngine(threading.Thread):
             player.in_hand = False
             player.hole_cards = []
             player.chips_in_pot = 0
+            player.max_win = None
             if not player.reserved and player.chips == 0:
                 player.sitting_out = True
             if not player.sitting_out:
@@ -587,28 +608,28 @@ class GameEngine(threading.Thread):
         self.state.current_bet = BIG_BLIND
         self.state.street = 'preflop'
         self.state.hand_in_action = True
+        self.resetTimebank()
+        self.state.time_pause = False
     
     def dealStreet(self):
         print('dealing new street')
-        
-        # create side pot for any player who is still in the hand and has less than the current bet in the pot
-        players_in_hand = {k: v for k, v in self.state.players.items() if v.in_hand}
-        for username, player in players_in_hand.items():
+
+        # create a side pot for each player that is all in (his max_win)
+        for username, player in self.state.players.items():
             side_pot = 0
-            # create side pot for player if he isn't matching the bet. if there's already a side pot, we skip this
-            if player.chips == 0 and username not in self.state.side_pot:
+            # make sure the player is all in and doesn't already have a max_win sidepot
+            if player.all_in and not player.max_win:
                 # iterate through each player sitting and put as much as we match into side pot
                 for other_player in self.state.players.values():
-                    if not other_player.sitting_out:
-                        # if the other player has us covered, they only match our chips in pot
-                        if other_player.chips_in_pot > player.chips_in_pot:
-                            side_pot += player.chips_in_pot
-                        # otherwise, we take as much as they have in the pot
-                        else:
-                            side_pot += other_player.chips_in_pot
+                    # if the other player has us covered, they only match our chips in pot
+                    if other_player.chips_in_pot > player.chips_in_pot:
+                        side_pot += player.chips_in_pot
+                    # otherwise, we take as much as they have in the pot
+                    else:
+                        side_pot += other_player.chips_in_pot
                 # need to add whatever was already in the pot before this round of betting
                 side_pot += self.state.previous_street_pot
-                self.state.side_pot[username] = side_pot
+                player.max_win = side_pot
         
         # reset current bet
         self.state.current_bet = 0
@@ -618,7 +639,6 @@ class GameEngine(threading.Thread):
             player.chips_in_pot = 0
             player.spotlight = False
             player.last_to_act = False
-        # self.returnState()
         time.sleep(SHORT_SLEEP)
         
         if self.state.street == 'preflop':
@@ -631,7 +651,7 @@ class GameEngine(threading.Thread):
             number_of_cards = 1
             self.state.street = 'river'
         else:
-            return self.showdown()
+            return self.showdown(self.evaluateHands())
         for _ in range(number_of_cards):
             card = self.deck.dealCard()
             self.createHandHistory('Card dealt: ' + card['rank'] + card['suit'])
@@ -646,12 +666,10 @@ class GameEngine(threading.Thread):
         else:
             self.determineFirstAndLastToAct()
     
-    def showdown(self):
-        
-        self.state.show_hands = True
-        
-        # self.returnState()
-        time.sleep(LONG_SLEEP)
+    # returns a dict of 'username: results[username]' where results[username] is the 
+    # hand score (1 being best possible hand out of 7463) and type of hand (straight flush, quads, etc..)
+    def evaluateHands(self):
+
         # convert cards to correct format for treys library
         first_card_board = self.state.community_cards[0]['rank'] + self.state.community_cards[0]['suit'].lower()
         second_card_board = self.state.community_cards[1]['rank'] + self.state.community_cards[1]['suit'].lower()
@@ -673,87 +691,82 @@ class GameEngine(threading.Thread):
         # do the same thing for each active player
         evaluator = Evaluator()
         winning_hand = 7463
-        for username, player in self.state.players.items():
-            if player.in_hand:
 
-                first_card = player.hole_cards[0]['rank'] + player.hole_cards[0]['suit'].lower()
-                second_card = player.hole_cards[1]['rank'] + player.hole_cards[1]['suit'].lower()
+        players_in_hand = {k: v for k, v in self.state.players.items() if v.in_hand}
+        for username, player in players_in_hand.items():
 
-                hand = [Card.new(first_card), Card.new(second_card)]
-                player_result = {}
-                player_result['score'] = evaluator.evaluate(board, hand)
-                # player_result['score'] = 1
-                player_result['hand_class'] = evaluator.get_rank_class(player_result['score'])
-                player_result['hand_class_string'] = evaluator.class_to_string(player_result['hand_class'])
+            first_card = player.hole_cards[0]['rank'] + player.hole_cards[0]['suit'].lower()
+            second_card = player.hole_cards[1]['rank'] + player.hole_cards[1]['suit'].lower()
 
-                results[username] = player_result
+            hand = [Card.new(first_card), Card.new(second_card)]
+            player_result = {}
+            player_result['score'] = evaluator.evaluate(board, hand)
+            player_result['hand_class'] = evaluator.get_rank_class(player_result['score'])
+            player_result['hand_class_string'] = evaluator.class_to_string(player_result['hand_class'])
+
+            results[username] = player_result
         
-        # we're going to loop through, finding the winner and paying out any side bets. we keep doing this until the winner does not have a side bet
-        while True:
-            # find the winner(s)
-            winning_hand = min(results.values(), key = lambda value: value['score'])
-            winners = {k for k, v in results.items() if v == winning_hand}
-            print('winners ', winners)
-            print('side pots ', self.state.side_pot)
 
-            # find minimum side pot of all winners
-            if len(self.state.side_pot) > 0:
-                if len(set.intersection(winners, set(self.state.side_pot))) > 0:
-                    minimum_side_pot_of_winners_username = min({k: v for k, v in self.state.side_pot.items() if k in winners}, key=lambda item: self.state.side_pot[item])
-                    minimum_side_pot_of_winners = self.state.side_pot[minimum_side_pot_of_winners_username]
-                    print(minimum_side_pot_of_winners_username)
-                else:
-                    minimum_side_pot_of_winners = self.state.pot
-                # split the pot if necessary
-                payout = minimum_side_pot_of_winners/len(winners)
-                for winner in winners:
-                    self.createHandHistory(
-                        winner + ' shows ' 
-                        + self.state.players[winner].hole_cards[0]['rank'] 
-                        + self.state.players[winner].hole_cards[0]['suit']
-                        + self.state.players[winner].hole_cards[1]['rank']
-                        + self.state.players[winner].hole_cards[1]['suit']
-                        + ' and wins ' + str(payout) + ' with ' + results[winner]['hand_class_string']
-                    )
-                    self.state.players[winner].chips += payout
-                    self.state.players[winner].chips_in_pot += payout
-                    self.state.pot -= payout
-                # subract the side pot that is currently paying out from all other side pots. when a sidepot reaches 0, remove it
-                for side_pot in dict(self.state.side_pot):
-                    self.state.side_pot[side_pot] -= minimum_side_pot_of_winners
-                    if self.state.side_pot[side_pot] <= 0:
-                        self.state.side_pot.pop(side_pot)
-                try:
-                    results.pop(minimum_side_pot_of_winners_username)
-                except:
-                    pass
-                # self.state['side_pot'].pop(minimum_side_pot_of_winners_username)
-                winning_hand = 7463
-                if len(self.state.side_pot) < 1:
-                    break
-            else:
-                # split the pot if necessary
-                payout = self.state.pot/len(winners)
-                for winner in winners:
-                    self.createHandHistory(
-                        winner + ' shows ' 
-                        + self.state.players[winner].hole_cards[0]['rank'] 
-                        + self.state.players[winner].hole_cards[0]['suit']
-                        + self.state.players[winner].hole_cards[1]['rank']
-                        + self.state.players[winner].hole_cards[1]['suit']
-                        + ' and wins ' + str(payout) + ' with ' + results[winner]['hand_class_string']
-                    )
-                    self.state.players[winner].chips += payout
-                    self.state.players[winner].chips_in_pot += payout
-                    self.state.pot -= payout
-                break
+        # results = {'player0': {'score': 1, 'hand_class': 8, 'hand_class_string': 'Pair'}, 
+        #     'player1': {'score': 1, 'hand_class': 8, 'hand_class_string': 'Pair'},
+        #     'player2': {'score': 2, 'hand_class': 8, 'hand_class_string': 'Pair'},
+        #     'player3': {'score': 1, 'hand_class': 8, 'hand_class_string': 'Pair'}
+        # }
+        
+        return results
+
+    
+    def showdown(self, results):
+
+        for player in self.state.players.values():
+            if not player.max_win:
+                player.max_win = self.state.pot
+        
+        self.state.show_hands = True
+
+        # find the best hand (lowest score) and create a dict of winner(s)
+        winning_hand = min(results.values(), key = lambda value: value['score'])
+        winners = {k for k, v in results.items() if v == winning_hand}
+
+        # sort based on whoever has the least max win (pay out the smallest side pots first)
+        winners = sorted(winners, key=lambda item: self.state.players[item].max_win)
+
+        # this will take care of potential split pots
+        payout = self.state.players[winners[0]].max_win/len(winners)
+
+        # we add to chips_in_pot so that we can see the chips moving on the frontend
+        for winner in winners:
+
+            time.sleep(LONG_SLEEP)
+            self.createHandHistory(
+                winner + ' shows ' 
+                + self.state.players[winner].hole_cards[0]['rank'] 
+                + self.state.players[winner].hole_cards[0]['suit']
+                + self.state.players[winner].hole_cards[1]['rank']
+                + self.state.players[winner].hole_cards[1]['suit']
+                + ' and wins ' + str(payout) + ' with ' + results[winner]['hand_class_string']
+            )
+
+            self.state.players[winner].chips += payout
+            self.state.players[winner].chips_in_pot += payout
+            self.state.pot -= payout
+        
+        # subtract the payout number for each player and if there is not enough left to pay them out, remove them from the results
+        for username in (username for username in self.state.players if username in results):
+            self.state.players[username].max_win -= payout * len(winners)
+            if self.state.players[username].max_win < 1e-4:
+                results.pop(username)
+        
+        # repeat paying out side pots until the whole pot is zero
+        if abs(self.state.pot) > 1e-4:
+            return self.showdown(results)
         
         self.betweenHands(winner)
     
     def betweenHands(self, winner_username):
 
-        # self.updated_state = copy.deepcopy(self.state)
-        # self.returnState()
+        self.state.time_pause = True
+
         time.sleep(LONG_SLEEP)
 
         winner = self.state.players[winner_username]
@@ -767,22 +780,20 @@ class GameEngine(threading.Thread):
         self.state.previous_street_pot = 0
         self.state.last_action = None
         self.state.last_action_username = None
-        # self.returnState()
 
         time.sleep(LONG_SLEEP)
         self.state.hand_in_action = False
         self.makeSitActions()
         self.newHand()
-        # self.returnState()
     
     def betweenStreets(self):
+
+        self.state.time_pause = True
         
-        # self.returnState()
         time.sleep(SHORT_SLEEP)
         self.state.last_action = None
         self.state.last_action_username = None
         self.dealStreet()
-        # self.returnState()
     
     def returnState(self):
 

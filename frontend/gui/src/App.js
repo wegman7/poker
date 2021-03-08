@@ -1,115 +1,148 @@
-import React, { Component } from 'react';
-import { BrowserRouter as Router } from 'react-router-dom';
-import { connect } from 'react-redux';
-import { Layout } from 'antd';
+import React, { useState, useEffect } from 'react';
+import { Route, withRouter, Redirect } from 'react-router-dom';
+import { NotificationContainer } from 'react-notifications';
+import CircularProgress from '@material-ui/core/CircularProgress';
+import axiosInstance, { baseUrl } from './utils/axios';
 
-import BaseRouter from './routes';
-import * as actions from './store/actions/auth';
-import Chat from './containers/Chat';
-import Navbar from './components/Navbar';
-import SidePanel from './containers/SidePanel';
-import WebSocketChat, { WebSocketPoker } from './websocket';
+import Login from './unauthenticated/components/auth/Login';
+import Signup from './unauthenticated/components/auth/Signup';
+import HomeContainerPublic from './unauthenticated/components/Home/index';
+import HomeContainerPrivate from './authenticated/components/Home/index';
+import ChooseAvatar from './authenticated/components/profile/ChooseAvatar';
+import ForgotPassword from './unauthenticated/components/auth/ForgotPassword';
+import ResetPassword from './unauthenticated/components/auth/ResetPassword';
+import ChangePassword from './authenticated/components/auth/ChangePassword';
+import { userDetails } from './utils/apiCalls';
+import createNotification from './utils/alerts';
+import NavbarPublic from './unauthenticated/components/Navbar';
+import NavbarPrivate from './authenticated/components/Navbar';
+import PokerRoutes from './poker/PokerRoutes';
 
-import 'antd/dist/antd.css';
 import './App.css';
+import 'react-notifications/lib/notifications.css';
 
-const { Header, Content } = Layout;
-
-class App extends Component {
-
-  state = {};
-
-  componentDidMount() {
-    console.log('inside componentDidMount (App.js)')
-    this.props.authCheckState();
-    this.setState({
-      chatSocket: null,
-      pokerSocket: null,
-      renderChat: false
-    })
-  }
-
-  componentDidUpdate() {
-    this.props.authCheckState();
-    console.log('inside componentDidUpdate (App.js)')
-  }
-
-  initializeSocket = (room_name) => {
-    this.disconnectFromSocket();
-    let chatSocket = new WebSocketChat(room_name);
-    let pokerSocket = new WebSocketPoker(room_name)
-    this.setState({
-      chatSocket: chatSocket,
-      pokerSocket: pokerSocket,
-      renderChat: true
-    });
-  }
-
-  disconnectFromSocket = () => {
-    if (this.state.chatSocket !== null && this.state.pokerSocket) {
-      this.state.chatSocket.disconnect();
-      this.state.pokerSocket.disconnect();
-    }
-    this.setState({
-      chatSocket: null,
-      pokerSocket: null,
-      renderChat: false
-    });
-  }
-
-  render() {
-
-    return (
-      <div>
-        <Router>
-          <Layout className="layout">
-            <Header style={{ zIndex: '1' }}>
-              <Navbar {...this.props} initializeSocket={this.initializeSocket} disconnectFromSocket={this.disconnectFromSocket} />
-            </Header>
-            <Layout>
-              {
-                this.props.isAuthenticated
-                ?
-                <div style={{ position: 'absolute', right: '0px', /* top: '10px', */ zIndex: '1' }} >
-                  <SidePanel {...this.props} initializeSocket={this.initializeSocket} />
-                </div>
-                :
-                <div></div>
-              }
-              <Content style={{}}>
-                <div className="site-layout-content">
-                  <BaseRouter {...this.props} pokerSocket={this.state.pokerSocket} />
-                </div>
-              </Content>
-            </Layout>
-            {/* <Footer>footer</Footer> */}
-          </Layout>
-          {
-            this.state.renderChat
-            ?
-            <Chat {...this.props} chatSocket={this.state.chatSocket} pokerSocket={this.state.pokerSocket} />
-            :
-            <div></div>
-          }
-        </Router>
-      </div>
-    );
-  }
+const PublicRoutes = (props) => {
+	return (
+		<>
+			<Route exact path='/'>
+				<Redirect to='/home/' />
+			</Route>
+			<Route path='/' render={(routeProps) => <NavbarPublic {...props} {...routeProps} />} />
+			<Route exact path='/home/' render={(routeProps) => <HomeContainerPublic {...props} {...routeProps} />} />
+			<Route exact path='/login/' render={(routeProps) => <Login {...props} {...routeProps} />} />
+			<Route exact path='/signup/' component={Signup} />
+			<Route exact path='/forgot-password/' component={ForgotPassword} />
+			<Route exact path='/reset-password/' component={ResetPassword} />
+		</>
+	);
 }
 
-const mapStateToProps = state => {
-  return {
-    token: state.token,
-    isAuthenticated: state.token !== null,
-    username: state.username
-  }
+const PrivateRoutes = (props) => {
+	return (
+		<>
+			<Route exact path='/'>
+				<Redirect to='/home/' />
+			</Route>
+			<Route path='/' render={(routeProps) => <NavbarPrivate {...props} {...routeProps} />} />
+			<Route exact path='/home/' render={(routeProps) => <HomeContainerPrivate {...props} {...routeProps} />} />
+			<Route exact path='/change-password/' component={ChangePassword} />
+			<Route exact path='/choose-avatar/' render={(routeProps) => <ChooseAvatar {...props} {...routeProps} />} />
+		</>
+	);
 }
 
-const mapDispatchToProps = dispatch => {
-  return {
-    authCheckState: () => dispatch(actions.authCheckState()),
-    logout: () => dispatch(actions.logout())
-  }
+const App = (props) => {
+	
+	const [user, setUser] = useState({ username: null, avatarUrl: null, isAuthenticated: false, checkAuthentication: true, play: false, loading: true });
+
+	const loadUser = () => {
+		if (localStorage.getItem('refreshToken')) {
+			setUser({ ...user, checkAuthentication: false, loading: true });
+			userDetails()
+				.then(response => {
+					console.log(response);
+					setUser({ 
+						username: response.data.username, 
+						avatarUrl: baseUrl + 'media/' + response.data.avatar, 
+						isAuthenticated: true, 
+						loading: false 
+					});
+				})
+				.catch(error => {
+					console.log(error);
+					setUser({ 
+						username: null, 
+						avatarUrl: null, 
+						isAuthenticated: false, 
+						loading: false 
+					});
+				});
+		} else {
+			setUser({ 
+				...user, 
+				checkAuthentication: false, 
+				loading: false 
+			});
+		}
+	}
+
+	useEffect(() => {
+		if (user.checkAuthentication) {
+			loadUser();
+		}
+	});
+	
+	const handleLogin = () => {
+		loadUser();
+		props.history.push('/');
+	}
+
+	const handleLogout = () => {
+		localStorage.clear();
+		axiosInstance.defaults.headers['Authorization'] = null;
+		setUser({ ...user, username: null, avatarUrl: null, isAuthenticated: false })
+		createNotification('info', 'You have been logged out.');
+		props.history.push('/');
+	}
+
+	if (user.loading) {
+		return(
+			<>
+				<CircularProgress />
+				<NotificationContainer />
+			</>
+		)
+	} else if (!user.isAuthenticated) {
+		return (
+			<>
+				<PublicRoutes 
+					handleLogin={handleLogin}
+				/>
+				<NotificationContainer />
+			</>
+		);
+	} else if (user.isAuthenticated && !user.play) {
+		return (
+			<>
+				<PrivateRoutes 
+					handleLogout={handleLogout}
+					user={user}
+					setUser={setUser}
+				/>
+				<NotificationContainer />
+			</>
+		);
+	} else if (user.isAuthenticated && user.play) {
+		return (
+			<>
+				<PokerRoutes 
+					user={user} 
+					setUser={setUser} 
+				/>
+				<NotificationContainer />
+			</>
+		);
+	}
 }
 
-export default connect(mapStateToProps, mapDispatchToProps)(App);
+export default withRouter(App);

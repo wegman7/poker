@@ -1,6 +1,5 @@
-.site-layout-content {
+/* .site-layout-content {
   background: #fff;
-  /* background-image: url('assets/vegas.jpg'); */
   background-size: 100%;
   padding: 6.5%;
   min-height: 280px;
@@ -65,7 +64,7 @@
   opacity: 0;
   width: 0;
   height: 0;
-}
+} */
 
 /* IMAGE STYLES */
 [type=radio] + img {
@@ -77,7 +76,7 @@
   outline: 2px solid #f00;
 }
 
-@import url('https://fonts.googleapis.com/css?family=Satisfy');
+/* @import url('https://fonts.googleapis.com/css?family=Satisfy');
 @import url('https://fonts.googleapis.com/css?family=Parisienne');
 @import url('https://fonts.googleapis.com/css?family=Mr+Bedfort');
 
@@ -97,12 +96,6 @@
   height: 120%;
   left: 0;
   top: 0;
-  /* background: url('assets/vegas.jpg') no-repeat center center fixed; */
-  /* background: url('assets/poker_chip_svg.png') center center fixed; */
-  /* background-repeat: space; */
-  /* background-repeat: round; */
-  /* background-size: 100px; */
-  /* opacity: 30%; */
 }
 
 .button {
@@ -117,8 +110,6 @@
 	cursor:pointer;
 	color:#ffffff;
 	font-family:Arial;
-	/* font-size:19px; */
-	/* padding:13px 37px; */
 	text-decoration:none;
 	text-shadow:-2px 2px 3px #283966;
 }
@@ -137,7 +128,6 @@
   border-image: linear-gradient(to bottom, #a1b7df, #07112c);
   border-image-slice: 1;
 	display:inline-block;
-	/* cursor:pointer; */
 	color: black;
 	font-family:Arial;
 	text-decoration:none;
@@ -150,4 +140,4 @@
   border-radius: 5px;
 	font-family:Arial;
 }
-
+ */

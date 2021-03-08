@@ -32,37 +32,66 @@ class PokerTests(TestCase):
         player.all_in = False
         player.reserved = False
         player.avatar = 'avatar'
+        player.max_win = None
 
         return player
 
-    def testStandingUpWhileDealer(self):
+    def isShowdownCorrect(self):
         game_engine = GameEngine('test')
         game_engine.start()
         
-        player0 = self.createPlayer('player0', 0, 50)
-        player1 = self.createPlayer('player1', 1, 50)
-        player2 = self.createPlayer('player2', 2, 50)
+        player0 = self.createPlayer('player0', 0, 500)
+        player1 = self.createPlayer('player1', 1, 200)
+        player2 = self.createPlayer('player2', 2, 100)
+        player3 = self.createPlayer('player3', 3, 50)
 
         time.sleep(.2)
 
         game_engine.state.players[player0.username] = player0
         game_engine.state.players[player1.username] = player1
         game_engine.state.players[player2.username] = player2
+        game_engine.state.players[player3.username] = player3
 
         game_engine.decideIfGameShouldStart()
 
-        game_engine.makeAction({'command': 'fold', 'username': 'player1'})
+        time.sleep(.2)
+
+        game_engine.makeAction({'command': 'bet', 'username': 'player0', 'chips': 500, 'chipsInPot': 500})
 
         time.sleep(.2)
 
-        game_engine.makeAction({'command': 'stand_up', 'username': 'player1'})
-
-        # game_engine.makeAction({'command': 'call', 'username': 'player2', 'chips': 50, 'chipsInPot': .5})
+        game_engine.makeAction({'command': 'call', 'username': 'player1', 'chips': 200, 'chipsInPot': 0})
 
         time.sleep(.2)
 
-        game_engine.makeAction({'command': 'fold', 'username': 'player2'})
+        game_engine.makeAction({'command': 'call', 'username': 'player2', 'chips': 99.75, 'chipsInPot': 0.25})
 
         time.sleep(.2)
 
-        print(game_engine.state.players['player0'].dealer)
+        game_engine.makeAction({'command': 'call', 'username': 'player3', 'chips': 49.5, 'chipsInPot': 0.5})
+
+        time.sleep(.4)
+
+        # PUT THIS AT THE END OF EVALUATEHANDS
+        # results = {'player0': {'score': 1, 'hand_class': 8, 'hand_class_string': 'Pair'}, 
+        #     'player1': {'score': 1, 'hand_class': 8, 'hand_class_string': 'Pair'},
+        #     'player2': {'score': 2, 'hand_class': 8, 'hand_class_string': 'Pair'},
+        #     'player3': {'score': 1, 'hand_class': 8, 'hand_class_string': 'Pair'}
+        # }
+
+    def isTimebankWorking(self):
+
+        game_engine = GameEngine('test')
+        game_engine.start()
+        
+        player0 = self.createPlayer('player0', 0, 50)
+        player1 = self.createPlayer('player1', 1, 50)
+
+        time.sleep(.2)
+
+        game_engine.state.players[player0.username] = player0
+        game_engine.state.players[player1.username] = player1
+
+        game_engine.decideIfGameShouldStart()
+
+        time.sleep(.4)

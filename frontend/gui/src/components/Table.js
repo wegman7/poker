@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 import { Form, Button, Input } from 'antd';
 import { Card } from 'react-casino';
-import mp3_file from '../assets/insight.mp3';
+// import mp3_file from '../assets/insight.mp3';
 
 import Chips from './Chips';
 import CommunityChips from './CommunityChips';
@@ -95,10 +95,10 @@ class Table extends Component {
             this.setState({ 
                 displayLastAction: true
             });
-            if (newProps.gameState.players[this.props.username] && newProps.gameState.players[this.props.username].spotlight) { 
-                let audio = new Audio(mp3_file);
+            // if (newProps.gameState.players[this.props.username] && newProps.gameState.players[this.props.username].spotlight) { 
+                // let audio = new Audio(mp3_file);
                 // audio.play();
-            }
+            // }
         }
     }
     

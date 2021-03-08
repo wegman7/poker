@@ -1,11 +1,10 @@
-// const url = window.location.host;
-const url = '127.0.0.1:8000';
+import { baseUrl } from './axios';
 
-export default class WebSocketChat {
+export class WebSocketChat {
 
     constructor(room_name) {
         this.room_name = room_name
-        const path = 'ws://' + url + '/ws/chat/' + this.room_name + '/';
+        const path = 'ws://' + baseUrl + '/ws/chat/' + this.room_name + '/';
         this.socket_ref = new WebSocket(path);
 
         this.socket_ref.onopen = this.onOpen.bind(this);
@@ -81,8 +80,8 @@ export class WebSocketPoker {
 
     constructor(room_name) {
         this.room_name = room_name
-        const path = 'ws://' + url + '/ws/poker/' + this.room_name + '/';
-        this.socket_ref = new WebSocket(path);
+        const path = 'ws://' + baseUrl.replace('http://', '') + 'ws/poker/' + this.room_name + '/';
+        this.socket_ref = new WebSocket(path, ['access_token', localStorage.getItem('accessToken')]);
 
         this.socket_ref.onopen = this.onOpen.bind(this);
         this.socket_ref.onerror = this.onError.bind(this);
@@ -98,9 +97,9 @@ export class WebSocketPoker {
         console.log('error', error);
     }
     onMessage = (event) => {
-        console.log('message', event);
+        // console.log('message', event);
         let data = JSON.parse(event.data);
-        this.types[data.type](data);
+        this.updateState(data);
     }
     onClose = (event) => {
         console.log('close', event);
@@ -109,19 +108,8 @@ export class WebSocketPoker {
         return this.socket_ref.readyState;
     }
 
-    addCallbacks = (updateState, seatReserved) => {
-        this.callbacks = {
-            updateState: updateState,
-            seatReserved: seatReserved
-        }
-        this.addTypes();
-    }
-
-    addTypes = () => {
-        this.types = {
-            state: this.callbacks.updateState,
-            seatReserved: this.callbacks.seatReserved
-        }
+    addCallbacks = (updateState) => {
+        this.updateState = updateState;
     }
 
     fetchState = () => {

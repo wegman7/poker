@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from jwt_auth.models import User
 from rest_framework import serializers
 
 from poker.models import Contact, Message, Room, Avatar
@@ -33,6 +33,11 @@ class ContactSerializer(serializers.ModelSerializer):
         # }
 
         # depth = 2
+
+class ContactDetailSerializer(serializers.Serializer):
+
+    username = serializers.CharField()
+    avatar = serializers.CharField()
 
 class MessageSerializer(serializers.ModelSerializer):
 

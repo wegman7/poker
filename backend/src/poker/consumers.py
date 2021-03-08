@@ -1,10 +1,14 @@
 import json
 import asyncio
 from asgiref.sync import async_to_sync
-from django.contrib.auth.models import User
+from django.contrib.auth.models import User, AnonymousUser
 from channels.consumer import SyncConsumer
 from channels.generic.websocket import AsyncWebsocketConsumer, WebsocketConsumer
 import copy, time
+import jwt
+from django.conf import settings
+from jwt_auth.models import User
+from rest_framework.exceptions import AuthenticationFailed
 
 from .models import Contact, Message, Room
 
@@ -101,15 +105,20 @@ class PlayerConsumer(AsyncWebsocketConsumer):
     groups = ["broadcast"]
 
     async def connect(self):
+        
         self.room_name = 'poker-' + self.scope['url_route']['kwargs']['room_name']
-        print(self.room_name)
+        
+        user = self.scope['user']
+        if user == AnonymousUser():
+            return
+        
         await self.channel_layer.group_add(self.room_name, self.channel_name)
-        print('connected')
+        
         await self.channel_layer.send(self.room_name, {
             'type': 'connectToTable',
             'room_name': self.room_name
         })
-        await self.accept()
+        await self.accept('access_token')
 
     async def receive(self, text_data=None, bytes_data=None):
         print('receive')

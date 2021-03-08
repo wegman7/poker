@@ -1,4 +1,4 @@
-from django.contrib.auth.models import User
+from jwt_auth.models import User
 from django.db import models
 
 class Avatar(models.Model):
