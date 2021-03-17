@@ -39,11 +39,16 @@ const Navbar = (props) => {
     props.history.push('/');
   }
 
+  const onClickLobby = () => {
+    props.setSelectedRoom('lobby');
+    props.history.push('/lobby/');
+  }
+
   return (
     <AppBar className={classes.appBar} position="static">
       <Toolbar>
         <Box p={2}>
-          <Button className={classes.navButtons} onClick={() => props.history.push('/lobby/')} variant="contained">
+          <Button className={classes.navButtons} onClick={onClickLobby} variant="contained">
             Lobby
           </Button>
         </Box>

@@ -4,7 +4,7 @@ export class WebSocketChat {
 
     constructor(room_name) {
         this.room_name = room_name
-        const path = 'ws://' + baseUrl + '/ws/chat/' + this.room_name + '/';
+        const path = 'ws://' + baseUrl.replace('http://', '') + 'ws/chat/' + this.room_name + '/';
         this.socket_ref = new WebSocket(path);
 
         this.socket_ref.onopen = this.onOpen.bind(this);
@@ -15,7 +15,6 @@ export class WebSocketChat {
     
     onOpen = (event) => {
         console.log('open', event);
-        this.fetchMessages();
     }
     onError = (error) => {
         console.log('error', error);
@@ -38,6 +37,7 @@ export class WebSocketChat {
             addResponseMessageHandler: addResponseMessageHandler
         }
         this.addTypes();
+        this.fetchMessages();
     }
 
     addTypes = () => {

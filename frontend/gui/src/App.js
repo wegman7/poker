@@ -16,7 +16,7 @@ import { userDetails } from './utils/apiCalls';
 import createNotification from './utils/alerts';
 import NavbarPublic from './unauthenticated/components/Navbar';
 import NavbarPrivate from './authenticated/components/Navbar';
-import PokerRoutes from './poker/PokerRoutes';
+import PokerApp from './poker/PokerApp';
 
 import './App.css';
 import 'react-notifications/lib/notifications.css';
@@ -135,10 +135,7 @@ const App = (props) => {
 	} else if (user.isAuthenticated && user.play) {
 		return (
 			<>
-				<PokerRoutes 
-					user={user} 
-					setUser={setUser} 
-				/>
+				<PokerApp user={user} setUser={setUser} />
 				<NotificationContainer />
 			</>
 		);

@@ -41,7 +41,6 @@ const Room = (props) => {
   return (
     <>
       room {props.roomName}
-      {/* <Chat /> */}
     </>
   );
 }

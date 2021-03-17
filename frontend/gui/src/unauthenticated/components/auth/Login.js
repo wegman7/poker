@@ -10,8 +10,10 @@ import { makeStyles } from '@material-ui/core/styles';
 import Container from '@material-ui/core/Container';
 import { login } from '../../../utils/apiCalls';
 import CircularProgress from '@material-ui/core/CircularProgress';
-import createNotification from '../../../utils/alerts';
 import { Link } from 'react-router-dom';
+
+import createNotification from '../../../utils/alerts';
+import axiosInstance from '../../../utils/axios';
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -58,6 +60,7 @@ const Login = (props) => {
 		// if the user was somehow able to attempt a login, these should be removed and can cause errors
 		localStorage.removeItem('accessToken');
 		localStorage.removeItem('refreshToken');
+		axiosInstance.defaults.headers['Authorization'] = null;
 
 		login(inputs.email, inputs.password)
 			.then(response => {

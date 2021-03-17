@@ -14,6 +14,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 
 import { getRooms } from '../../../utils/apiCalls';
+import { WebSocketChat, WebSocketPoker } from '../../../utils/websocket';
 
 const useStyles = makeStyles((theme) => ({
   title: {
@@ -109,6 +110,10 @@ const Lobby = (props) => {
   }, []);
 
   const handleRoomClick = (name) => {
+    if (!props.chatSockets.hasOwnProperty(name)) {
+			props.setChatSockets({ ...props.chatSockets, [name]: new WebSocketChat(name) });
+			props.setPokerSockets({ ...props.pokerSockets, [name]: new WebSocketPoker(name) });
+		}
     props.setSelectedRoom(name);
     props.history.push('/room/');
   }
