@@ -73,10 +73,13 @@ const Login = (props) => {
 			})
 			.catch(error => {
 				console.log(error);
-        const messages = error.response.data;
-        for (var message in messages) {
+				var messages;
+				if (error.response !== undefined) {
+					messages = error.response.data;
+				}
+				for (var message in messages) {
 					createNotification('error', message + ': ' + String(messages[message]));
-        }
+				}
 				setInputs({ ...inputs, loading: false });
 			});
 	}

@@ -110,6 +110,7 @@ const Lobby = (props) => {
   }, []);
 
   const handleRoomClick = (name) => {
+    console.log(name);
     if (!props.chatSockets.hasOwnProperty(name)) {
 			props.setChatSockets({ ...props.chatSockets, [name]: new WebSocketChat(name) });
 			props.setPokerSockets({ ...props.pokerSockets, [name]: new WebSocketPoker(name) });

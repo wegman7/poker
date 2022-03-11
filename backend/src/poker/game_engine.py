@@ -14,9 +14,10 @@ LONG_SLEEP = 3 # 3
 MEDIUM_SLEEP = 2 # 2
 SHORT_SLEEP = 1.5 # 1.5
 
-REFRESH_RATE = .1
+REFRESH_RATE = 1.5
 
 # THERE MAY BE A BUG WHERE A PLAYER CANNOT SIT OUT
+# SLEEP NOT WORKING??
 
 class Player():
 
@@ -313,6 +314,8 @@ class GameEngine(threading.Thread):
         return True
     
     def makeAction(self, data):
+
+        print(data)
 
         print(data['username'], ': ', data)
         
@@ -864,3 +867,6 @@ class GameEngine(threading.Thread):
         'call': 'call',
         'bet': 'bet'
     }
+
+# NEED TO SLOWLY CHANGE EVERY METHOD TO ACCEPT STATE AS AN ARGUMENT INSTEAD OF JUST ALTERING ITS. OTHERWISE
+# IT'S REALLY HARD TO TELL WHAT'S BEING CHANGED IN EACH METHOD

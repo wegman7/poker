@@ -6,5 +6,39 @@
 	],
 	"settings": {
 		"python.pythonPath": "~/prog/poker/backend/venv/bin/python"
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			
+			{
+				"type": "pwa-chrome",
+				"request": "launch",
+				"name": "Launch Chrome against localhost",
+				"url": "http://localhost:3000",
+				"webRoot": "${workspaceFolder}"
+			  },
+			{
+				"name": "Django",
+				"type": "python",
+				"request": "launch",
+				"program": "${workspaceFolder}/backend/src/manage.py",
+				"args": [
+					"runserver"
+				],
+				"django": true
+			},
+			{
+				"name": "Django Worker",
+				"type": "python",
+				"request": "launch",
+				"program": "${workspaceFolder}/backend/src/manage.py",
+				"args": [
+					"runworker",
+					"poker-Titan"
+				],
+				"django": true
+			}
+		]
 	}
 }

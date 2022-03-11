@@ -132,7 +132,17 @@ class PlayerConsumer(AsyncWebsocketConsumer):
             })
     
     async def sendMessage(self, event):
+        restricted_event = json.loads(event['text'])
+        players = restricted_event['state']['players']
         
+        # this will prevent players from looking at other player's hold cards in console
+        # for player in players:
+        #     if player != self.scope['user'].username:
+        #         players[player].hole_cards = None
+        # await self.send(text_data=json.dumps(restricted_event))
+        
+        # WHY ISN'T THE GAME STARTING WITH TWO PLAYERS??
+        # print(event['text'])
         await self.send(text_data=event['text'])
 
     async def disconnectFromRoom(self):

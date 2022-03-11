@@ -1,0 +1,21 @@
+.poker-room {
+    width: 100%;
+    padding-top: 46%;
+    position: relative;
+    background-color: red;
+    display: inline-block;
+}
+
+.poker-room-container {
+    width: 100%;
+    /* text-align: center; */
+}
+
+@media (min-width: 1300px) {
+    .poker-room {
+        width: 1300px;
+        height: 625px;
+        padding-top: 0px;
+        /* text-align: center; */
+    }
+}

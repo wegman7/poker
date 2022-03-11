@@ -17,27 +17,28 @@ const PokerRoutes = (props) => {
 			<Route 
 				path='/' 
 				render={(routeProps) => 
-				<NavbarPoker 
-					{...routeProps} 
-					gameStates={gameStates}
-					setGameStates={setGameStates}
-					user={props.user}
-					setUser={props.setUser}
-					pokerSockets={props.pokerSockets}
-					setPokerSockets={props.setPokerSockets}
-					setSelectedRoom={props.setSelectedRoom}
-				/>} 
+					<NavbarPoker 
+						{...routeProps} 
+						gameStates={gameStates}
+						setGameStates={setGameStates}
+						user={props.user}
+						setUser={props.setUser}
+						pokerSockets={props.pokerSockets}
+						setPokerSockets={props.setPokerSockets}
+						setSelectedRoom={props.setSelectedRoom}
+					/>} 
 			/>
-			<Route path='/lobby/' render={(routeProps) => 
-				<Lobby 
-					{...routeProps} 
-					user={props.user} 
-					chatSockets={props.chatSockets}
-					setChatSockets={props.setChatSockets}
-					pokerSockets={props.pokerSockets}
-					setPokerSockets={props.setPokerSockets}
-					setSelectedRoom={props.setSelectedRoom} 
-				/>} 
+			<Route path='/lobby/' 
+				render={(routeProps) => 
+					<Lobby 
+						{...routeProps} 
+						user={props.user} 
+						chatSockets={props.chatSockets}
+						setChatSockets={props.setChatSockets}
+						pokerSockets={props.pokerSockets}
+						setPokerSockets={props.setPokerSockets}
+						setSelectedRoom={props.setSelectedRoom} 
+					/>} 
 			/>
 			<Route 
 				path='/room/' 
@@ -49,9 +50,9 @@ const PokerRoutes = (props) => {
 						setGameStates={setGameStates} 
 						pokerSockets={props.pokerSockets} 
 						setPokerSockets={props.setPokerSockets} 
+						user={props.user}
 					/>} 
-				/>
-				{/* NEED TO CHANGE A LOT TO ROOM. I ONLY NEED TO PASS IN ONE GAMESTATE (GAMESTATES[PROPS.SELECTEDROOM], AND DON'T NEED POKER SOCKETS */}
+			/>
 		</>
 	);
 }
