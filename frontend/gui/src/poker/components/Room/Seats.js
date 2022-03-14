@@ -8,60 +8,16 @@ import Box from '@material-ui/core/Box';
 import Seat from './Seat';
 import ActionBar from './ActionBar';
 import SitBar from './SitBar';
+import seatStyles from './seatStyles';
+import Chips from './Chips';
+import Pot from './Pot';
+import CommunityCards from './CommunityCards';
 
 const seats = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight']
-
-const useStyles = makeStyles((theme) => ({
-  base: {
-    position: 'absolute',
-  },
-  zero: {
-    top: '0%', left: '60%'
-  },
-  one: {
-    top: '0%', left: '85%'
-  },
-  two: {
-    top: '49%', left: '87%'
-  },
-  three: {
-    top: '80%', left: '68%'
-  },
-  four: {
-    top: '88%', left: '44%'
-  },
-  five: {
-    top: '80%', left: '19%'
-  },
-  six: {
-    top: '49%', left: '0%'
-  },
-  seven: {
-    top: '0%', left: '2%'
-  },
-  eight: {
-    top: '0%', left: '30%'
-  },
-  buyin: {
-    width: 225,
-    height: 350,
-    textAlign: 'center'
-  },
-  buyinButton: {
-    margin: 10
-  },
-  buyinContainer: {
-    display: 'flex',
-    flexDirection: 'column',
-    height: '100%'
-  },
-  buyinElement: {
-    flexGrow: 1,
-  },
-}));
+const seatChips = ['chipsZero', 'chipsOne', 'chipsTwo', 'chipsThree', 'chipsFour', 'chipsFive', 'chipsSix', 'chipsSeven', 'chipsEight']
 
 const Seats = (props) => {
-  const classes = useCallback(useStyles(), []);
+  const classes = useCallback(seatStyles(), []);
   const [sitting, setSitting] = useState(false);
   const [showBuyinBox, setShowBuyinBox] = useState(false);
   const [buyin, setBuyin] = useState('');
@@ -112,8 +68,28 @@ const Seats = (props) => {
           username={props.user.username}
           handleOpenBuyinBox={handleOpenBuyinBox}
           player={players[index]}
+          myPlayer={props.gameState.players[props.user.username]}
         />
       ))}
+      {seatChips.map((seat, index) => (
+        <Chips
+          key={index}
+          seatNumber={index}
+          chipStyle={classes[seat]} 
+          baseStyle={classes.base} 
+          player={players[index]}
+          myPlayer={props.gameState.players[props.user.username]}
+          chipStyle={classes[seat]}
+        />
+      ))}
+      <CommunityCards
+        baseStyle={classes.base}
+        communityCards={props.gameState.community_cards}
+      />
+      <Pot 
+        baseStyle={classes.base}
+        pot={props.gameState.pot}
+      />
       <ActionBar
         player={props.gameState.players[props.user.username]}
         makeAction={props.makeAction}

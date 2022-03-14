@@ -9,12 +9,24 @@ const useStyles = makeStyles((theme) => ({
   },
   paper: {
     padding: 5,
-    textAlign: 'center'
+    textAlign: 'center',
   },
 }));
 
 // const darkTheme = createTheme({ palette: { mode: 'dark' } });
 // WE NEED TO FIGURE OUT HOW TO DO DARK MODE ON MATERIAL UI V4, BUT WE CAN PROBABLY JUST DO THIS LATER. FIRST GET ALL THE BASIC PIECES SET UP
+
+const Cards = (props) => {
+
+  if (props.holeCards.length === 0) {
+    return null;
+  }
+  return (
+    <div>
+      {props.holeCards[0].rank}{props.holeCards[0].suit} {props.holeCards[1].rank}{props.holeCards[1].suit}
+    </div>
+  );
+}
 
 const Seat = (props) => {
   const classes = useStyles();
@@ -26,7 +38,7 @@ const Seat = (props) => {
   }
 
   // render click to sit button
-  if (props.player === undefined) {
+  if (props.player === undefined && props.myPlayer === undefined) {
     return (
       <div className={`${props.seatStyle} ${props.baseStyle}`}>
         {props.seatNumber}
@@ -48,14 +60,17 @@ const Seat = (props) => {
   // render my player
   if (props.player !== undefined && props.player.username === props.username) {
     return (
-      <div className={`${props.seatStyle} ${props.baseStyle}`}>
-        {/* <ThemeProvider theme={darkTheme}> */}
-          <Paper className={classes.paper} elevation={3}>
-            {props.player.username} (me)<br/>
-            {props.player.chips}
-          </Paper>
-        {/* </ThemeProvider> */}
-      </div>
+      <>
+        <div className={`${props.seatStyle} ${props.baseStyle}`}>
+          {/* <ThemeProvider theme={darkTheme}> */}
+            <Paper className={classes.paper} elevation={3}>
+              <Cards holeCards={props.player.hole_cards} />
+              {props.player.username} (me)<br/>
+              {props.player.chips}
+            </Paper>
+          {/* </ThemeProvider> */}
+        </div>
+      </>
     );
   }
 
@@ -70,6 +85,8 @@ const Seat = (props) => {
       </div>
     );
   }
+
+  return null;
 }
 
 export default Seat;
