@@ -12,7 +12,7 @@ const useStyles = makeStyles((theme) => ({
 const Chips = (props) => {
   const classes = useStyles();
 
-  if (props.player === undefined) {
+  if (props.player === undefined || props.player.chips_in_pot === 0) {
     return null;
   }
 

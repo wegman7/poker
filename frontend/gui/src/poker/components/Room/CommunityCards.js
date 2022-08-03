@@ -14,6 +14,7 @@ const CommunityCards = (props) => {
   if (props.communityCards.length === 0) {
     return null;
   }
+
   return (
     <div className={`${classes.cards} ${props.baseStyle}`}>
       {props.communityCards[0].rank}{props.communityCards[0].suit} {props.communityCards[1].rank}{props.communityCards[1].suit} {props.communityCards[2].rank}{props.communityCards[2].suit}

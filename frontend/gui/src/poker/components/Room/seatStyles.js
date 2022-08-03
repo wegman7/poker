@@ -4,6 +4,9 @@ const seatStyles = makeStyles((theme) => ({
   base: {
     position: 'absolute',
     fontSize: '1.3vw',
+    width: '18%',
+    height: '12%',
+    backgroundColor: 'blue'
   },
 
   zero: {

@@ -64,6 +64,14 @@ const SitIn = (props) => {
 }
 
 const SitOut = (props) => {
+  if (props.player.sit_out_after_hand) {
+    return (
+      <Button className={props.sitOutStyle} style={{ color: 'grey' }} variant="contained" color="primary" onClick={() => props.makeSitAction('sit_out', props.player.username)}>
+        Sit out
+      </Button>
+    );
+  }
+
   return (
     <Button className={props.sitOutStyle} variant="contained" color="primary" onClick={() => props.makeSitAction('sit_out', props.player.username)}>
       Sit out

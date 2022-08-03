@@ -1,6 +1,8 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
 import Paper from '@material-ui/core/Paper';
+import { Card } from 'react-casino';
+import zIndex from '@material-ui/core/styles/zIndex';
 // import { createTheme, ThemeProvider, styled } from '@material-ui/core/styles';
 
 const useStyles = makeStyles((theme) => ({
@@ -10,7 +12,18 @@ const useStyles = makeStyles((theme) => ({
   paper: {
     padding: 5,
     textAlign: 'center',
+    // backgroundColor: 'green',
+    position: 'relative',
+    zIndex: 2,
+    height: '100%'
   },
+  cardStyle: {
+    position: 'absolute', 
+    // top: '50%', 
+    // overflow: 'hidden',
+    backgroundColor: 'pink',
+    zIndex: '1'
+  }
 }));
 
 // const darkTheme = createTheme({ palette: { mode: 'dark' } });
@@ -23,7 +36,8 @@ const Cards = (props) => {
   }
   return (
     <div>
-      {props.holeCards[0].rank}{props.holeCards[0].suit} {props.holeCards[1].rank}{props.holeCards[1].suit}
+      <Card suit={props.holeCards[0].suit} face={props.holeCards[0].rank} style={{ position: 'absolute', left: '0%', top: '-150%', backgroundColor: 'purple', height: '10vw', width: '7.5vw' }} />
+      <Card suit={props.holeCards[1].suit} face={props.holeCards[1].rank} style={{ position: 'absolute', left: '50%', top: '-150%', backgroundColor: 'purple', height: '10vw', width: '7.5vw' }} />]
     </div>
   );
 }
@@ -45,6 +59,11 @@ const Seat = (props) => {
         <button onClick={() => {handleReserveSeat(props.seatNumber, props.username)}}>Reserve</button>
       </div>
     );
+  // render empty seat
+  } else if (props.player === undefined) {
+    return (
+      null
+    );
   }
 
   // render reserved seat
@@ -57,36 +76,30 @@ const Seat = (props) => {
     );
   }
 
-  // render my player
-  if (props.player !== undefined && props.player.username === props.username) {
-    return (
-      <>
-        <div className={`${props.seatStyle} ${props.baseStyle}`}>
-          {/* <ThemeProvider theme={darkTheme}> */}
-            <Paper className={classes.paper} elevation={3}>
-              <Cards holeCards={props.player.hole_cards} />
-              {props.player.username} (me)<br/>
-              {props.player.chips}
-            </Paper>
-          {/* </ThemeProvider> */}
-        </div>
-      </>
-    );
-  }
-
   // render player
-  if (props.player !== undefined && props.player.username !== props.username) {
-    return (
-      <div className={`${props.seatStyle} ${props.baseStyle}`}>
-        <Paper className={classes.paper} elevation={3}>
-          {props.player.username}<br/>
-          {props.player.chips}
-        </Paper>
-      </div>
-    );
-  }
+  return (
+    <div className={`${props.seatStyle} ${props.baseStyle}`}>
+      <Paper className={classes.paper} elevation={3}>
+        {props.player.username}<br/>
+        {props.player.chips}
+        {
+          props.player.sitting_out
+          ?
+          <div>sitting out</div>
+          :
+          null
+        }
+      </Paper>
+      {
+        props.player !== undefined && props.player.username === props.username
+        ?
+        <Cards holeCards={props.player.hole_cards} cardStyle={classes.cardStyle} />
+        :
+        null
+      }
+    </div>
+  );
 
-  return null;
 }
 
 export default Seat;

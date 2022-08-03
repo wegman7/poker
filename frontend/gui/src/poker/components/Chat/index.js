@@ -16,7 +16,7 @@ const Chat = (props) => {
 					if (currentUser === messages[i]['author']) {
 							addUserMessage(messages[i]['content']);
 					} else {
-							addResponseMessage(messages[i]['content']);
+							addResponseMessage(messages[i].author + ': ' + messages[i]['content']);
 					}
 			}
 	}, [username]);
@@ -27,8 +27,8 @@ const Chat = (props) => {
 					from: author,
 					content: message_text
 			}
-			console.log(messageObject);
-			props.chatSocket.newMessage(messageObject);
+			
+			props.chatSockets[props.roomName].newMessage(messageObject);
 	}
 
 	const addResponseMessageHandler = useCallback((data) => {
@@ -47,7 +47,7 @@ const Chat = (props) => {
   
   useEffect(() => {
 		dropMessages();
-		setTimeout(() => { chatSockets[roomName].addCallbacks(renderMessages, addResponseMessageHandler) }, 100);
+		setTimeout(() => { chatSockets[roomName].addCallbacks(renderMessages, addResponseMessageHandler) }, 4000);
 	}, [roomName, chatSockets, renderMessages, addResponseMessageHandler]);
 	
   return (

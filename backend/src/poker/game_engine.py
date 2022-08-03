@@ -1,20 +1,20 @@
 import time, asyncio, threading, json, copy
 from asgiref.sync import async_to_sync, sync_to_async
 from channels.layers import get_channel_layer
-from django.contrib.auth.models import User
+from jwt_auth.models import User
 from .models import Contact, Message, Room
 from treys import Card, Evaluator
 from .deck import Deck
 
 BIG_BLIND = .5
 SMALL_BLIND = .25
-TIME_BANK = 10
+TIME_BANK = 300
 
-LONG_SLEEP = 3 # 3
-MEDIUM_SLEEP = 2 # 2
-SHORT_SLEEP = 1.5 # 1.5
+LONG_SLEEP = 20 # 3
+MEDIUM_SLEEP = 20 # 2
+SHORT_SLEEP = 20 # 1.5
 
-REFRESH_RATE = 1.5
+REFRESH_RATE = .5
 
 # THERE MAY BE A BUG WHERE A PLAYER CANNOT SIT OUT
 # SLEEP NOT WORKING??
@@ -79,7 +79,8 @@ class Player():
         gameEngine.decideIfGameShouldStart()
 
     def sitOut(self, gameEngine, state, action):
-
+        print(id(gameEngine))
+        print(id(state))
         if self.in_hand:
             if self.sit_out_after_hand == False:
                 self.sit_out_after_hand = True
@@ -246,9 +247,19 @@ class GameEngine(threading.Thread):
 
         print('starting game...')
         while True:
+            print(id(self))
+            print(id(self.state))
             self.tick()
             self.returnState()
             time.sleep(REFRESH_RATE)
+
+            # WE COULD TRY SOMETHING LIKE THIS.. ONLY RETURN STATE IF NEEDED. THE TIMEBANK COULD BE A SEPARATE THREAD THAT TRIGGERS 
+            # AN 'ACTION' THAT WILL DO THINGS/ RETURN STATE 
+            # old_state = copy(self.state)
+            # self.tick()
+            # if self.state != old_state:
+            #   self.returnState()
+            # time.sleep()
     
     def tick(self):
 
@@ -325,7 +336,6 @@ class GameEngine(threading.Thread):
         self.actions.append(data)
     
     def makeSitActions(self):
-
 
         for username, player in self.state.players.items():
             print(username, player.sit_out_after_hand)
@@ -831,28 +841,28 @@ class GameEngine(threading.Thread):
     
     def createHandHistory(self, data):
 
-        # user = User.objects.get(username='Dealer')
-        # contact = Contact.objects.get(user=user)
-        # room_name = self.room_name.replace('poker-', '')
-        # chat = Room.objects.get(name=room_name)
-        # new_message = Message.objects.create(
-        #     contact = contact,
-        #     content = data
-        # )
-        # chat.messages.add(new_message)
-        # new_message_json = json.dumps(self.messageToDict(new_message))
-        # content = {
-        #     'type': 'new_message',
-        #     'message': new_message_json
-        # }
-        # # this sends the new message to the chat consumer
-        # async_to_sync(self.channel_layer.group_send)(
-        #     self.room_name.replace('poker-', 'chat-'),
-        #     {
-        #         "type": "sendMessageToGroup",
-        #         "text": json.dumps(content)
-        #     }
-        # )
+        user = User.objects.get(username='Dealer')
+        contact = Contact.objects.get(user=user)
+        room_name = self.room_name.replace('poker-', '')
+        chat = Room.objects.get(name=room_name)
+        new_message = Message.objects.create(
+            contact = contact,
+            content = data
+        )
+        chat.messages.add(new_message)
+        new_message_json = json.dumps(self.messageToDict(new_message))
+        content = {
+            'type': 'new_message',
+            'message': new_message_json
+        }
+        # this sends the new message to the chat consumer
+        async_to_sync(self.channel_layer.group_send)(
+            self.room_name.replace('poker-', 'chat-'),
+            {
+                "type": "sendMessageToGroup",
+                "text": json.dumps(content)
+            }
+        )
         print('Dealer: ', data)
     
     commands = {

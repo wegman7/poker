@@ -79,7 +79,6 @@ const Seats = (props) => {
           baseStyle={classes.base} 
           player={players[index]}
           myPlayer={props.gameState.players[props.user.username]}
-          chipStyle={classes[seat]}
         />
       ))}
       <CommunityCards
@@ -90,10 +89,17 @@ const Seats = (props) => {
         baseStyle={classes.base}
         pot={props.gameState.pot}
       />
-      <ActionBar
-        player={props.gameState.players[props.user.username]}
-        makeAction={props.makeAction}
-      />
+      {
+        props.gameState.players[props.user.username] === undefined || props.gameState.players[props.user.username].spotlight !== true
+        ?
+        null
+        :
+        <ActionBar
+          player={props.gameState.players[props.user.username]}
+          makeAction={props.makeAction}
+          gameState={props.gameState}
+        />
+      }
       <SitBar
         player={props.gameState.players[props.user.username]}
         addChips={props.addChips}

@@ -120,25 +120,42 @@ const Fold = (props) => {
   );
 }
 
+const Check = (props) => {
+  return (
+    <Button className={props.callStyle} variant="contained" color="primary" onClick={() => props.makeAction('check')}>
+      check
+    </Button>
+  );
+}
+
 const Call = (props) => {
   return (
     <Button className={props.callStyle} variant="contained" color="primary" onClick={() => props.makeAction('call')}>
-      call
+      call {props.callAmount}
     </Button>
   );
 }
 
 const Bet = (props) => {
+  var betAmount = props.value;
+  betAmount = setMinAndMaxBounds(props.minBet, props.maxBet, betAmount);
+
   return (
     <Button className={props.betStyle} variant="contained" color="primary" onClick={() => props.makeAction('bet')}>
-      bet
+      {
+        props.chipsInPot === 0
+        ?
+        <div>bet {betAmount}</div>
+        :
+        <div>raise {betAmount}</div>
+      }
     </Button>
   );
 }
 
 const Increment = (props) => {
   return (
-    <Button className={props.incrementStyle} variant="contained" color="primary">
+    <Button className={props.incrementStyle} onClick={props.handleInc} variant="contained" color="primary">
       +
     </Button>
   );
@@ -146,7 +163,7 @@ const Increment = (props) => {
 
 const Decrement = (props) => {
   return (
-    <Button className={props.decrementStyle} variant="contained" color="primary">
+    <Button className={props.decrementStyle} onClick={props.handleDec} variant="contained" color="primary">
       -
     </Button>
   );
@@ -154,7 +171,7 @@ const Decrement = (props) => {
 
 const Min = (props) => {
   return (
-    <Button className={props.minStyle} variant="contained" color="primary">
+    <Button className={props.minStyle} onClick={props.handleMin} variant="contained" color="primary">
       Min
     </Button>
   );
@@ -162,7 +179,7 @@ const Min = (props) => {
 
 const Pot = (props) => {
   return (
-    <Button className={props.potStyle} variant="contained" color="primary">
+    <Button className={props.potStyle} onClick={props.handlePot} variant="contained" color="primary">
       Pot
     </Button>
   );
@@ -170,22 +187,81 @@ const Pot = (props) => {
 
 const Max = (props) => {
   return (
-    <Button className={props.maxStyle} variant="contained" color="primary">
+    <Button className={props.maxStyle} onClick={props.handleMax} variant="contained" color="primary">
       Max
     </Button>
   );
 }
 
+// set min and max bounds
+const setMinAndMaxBounds = (minBet, maxBet, betAmount) => {
+  betAmount = Math.max(minBet, betAmount);
+  betAmount = Math.min(maxBet, betAmount);
+  return betAmount;
+}
+
 const ActionBar = (props) => {
   const classes = useStyles();
-  const [value, setValue] = useState(30);
+  const [value, setValue] = useState(0);
 
-  const handleValueChange = (event, newValue) => {
-    setValue(newValue);
-  };
+  useEffect(() => {
+    handleValueChange(null, minBet);
+  }, [props.gameState.current_bet]);
+
+  var minBet;
+  if (props.gameState.current_bet !== 0) {
+    minBet = Math.min(props.gameState.current_bet * 2, props.player.chips + props.player.chips_in_pot);
+  } else {
+    minBet = Math.min(props.gameState.big_blind, props.player.chips + props.player.chips_in_pot);
+  }
+  var maxBet = props.player.chips + props.player.chips_in_pot;
+  var noCurrBet = props.player.chips_in_pot === props.gameState.current_bet;
 
   const makeAction = (action) => {
-    props.makeAction(action, props.player.username, value, value + props.player.chips_in_pot);
+    var betAmount = value;
+    betAmount = setMinAndMaxBounds(minBet, maxBet, betAmount);
+    props.makeAction(action, props.player.username, null, betAmount);
+  }
+
+  const handleValueChange = (event, newValue) => {
+    if (newValue === null) {
+      newValue = event.target.value;
+    }
+    newValue = setMinAndMaxBounds(minBet, maxBet, newValue);
+    setValue(newValue);
+  }
+
+  const handleTextValueChange = (event) => {
+    var newValue = event.target.value;
+    if (!isNaN(newValue)) {
+      setValue(newValue);
+    }
+  }
+
+  const handleMax = () => {
+    handleValueChange(null, maxBet);
+  }
+
+  const handleMin = () => {
+    handleValueChange(null, minBet);
+  }
+
+  const handleInc = () => {
+    handleValueChange(null, parseFloat(value) + props.gameState.big_blind);
+  }
+
+  const handleDec = () => {
+    handleValueChange(null, parseFloat(value) - props.gameState.big_blind);
+  }
+
+  const handlePot = () => {
+    var pot;
+    if (props.gameState.current_bet !== 0) {
+      pot = props.gameState.current_bet * 3 + (props.gameState.pot - props.gameState.current_bet) - props.player.chips_in_pot;
+    } else {
+      pot = props.gameState.pot;
+    }
+    handleValueChange(null, pot);
   }
 
   if (props.player === undefined || !props.player.spotlight) {
@@ -194,31 +270,37 @@ const ActionBar = (props) => {
 
   return (
     <div className={classes.base}>
-      <Min minStyle={classes.min} />
-      <Pot potStyle={classes.pot} />
-      <Max maxStyle={classes.max} />
+      <Min minStyle={classes.min} handleMin={handleMin} />
+      <Pot potStyle={classes.pot} handlePot={handlePot} />
+      <Max maxStyle={classes.max} handleMax={handleMax} />
       <TextField 
         className={classes.value} 
         inputProps={{ style: { fontSize: '1.9vw', padding: 5, margin: 0 } }} 
         value={value} 
-        onChange={handleValueChange}
+        onChange={handleTextValueChange}
         variant="outlined" 
         size="small"
       />
-      <Decrement decrementStyle={classes.decrement} />
+      <Decrement decrementStyle={classes.decrement} handleDec={handleDec} />
       <Slider
         className={classes.slider}
         value={value}
         onChange={handleValueChange}
         aria-labelledby="discrete-slider"
-        step={10}
-        min={0}
-        max={100}
+        step={props.gameState.big_blind}
+        min={minBet}
+        max={maxBet}
       />
-      <Increment incrementStyle={classes.increment} />
+      <Increment incrementStyle={classes.increment} handleInc={handleInc} />
       <Fold foldStyle={classes.fold} makeAction={makeAction} />
-      <Call callStyle={classes.call} makeAction={makeAction} />
-      <Bet betStyle={classes.bet} makeAction={makeAction} />
+      {
+        noCurrBet
+        ?
+        <Check callStyle={classes.call} makeAction={makeAction} />
+        :
+        <Call callStyle={classes.call} makeAction={makeAction} callAmount={props.gameState.current_bet} />
+      }
+      <Bet betStyle={classes.bet} makeAction={makeAction} value={value} chipsInPot={props.player.chips_in_pot} minBet={minBet} maxBet={maxBet} />
     </div>
   );
 }

@@ -5,7 +5,7 @@ export const baseUrl = 'http://localhost:8000/';
 
 const axiosInstance = axios.create({
 	baseURL: baseUrl,
-	timeout: 5000,
+	timeout: 8000,
 	headers: {
 		Authorization: localStorage.getItem('accessToken')
 			? 'Bearer ' + localStorage.getItem('accessToken')

@@ -121,8 +121,8 @@ class PlayerConsumer(AsyncWebsocketConsumer):
         await self.accept('access_token')
 
     async def receive(self, text_data=None, bytes_data=None):
-        print('receive')
         data = json.loads(text_data)
+        print(data['username'], data)
         if data['command'] == 'disconnect':
             await self.disconnectFromRoom()
         else:

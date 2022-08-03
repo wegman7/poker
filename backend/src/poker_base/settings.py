@@ -99,7 +99,7 @@ DATABASES = {
         'NAME': 'poker_db',
         'USER': 'postgres',
         'PASSWORD': 'password',
-        'HOST': '172.105.154.117',
+        'HOST': 'pokerdb.cqyd6smjtong.us-east-2.rds.amazonaws.com',
         'PORT': 5432,
     }
 }
