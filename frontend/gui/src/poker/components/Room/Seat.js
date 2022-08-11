@@ -21,7 +21,7 @@ const useStyles = makeStyles((theme) => ({
     position: 'absolute', 
     // top: '50%', 
     // overflow: 'hidden',
-    backgroundColor: 'pink',
+    // backgroundColor: 'pink',
     zIndex: '1'
   }
 }));
@@ -34,10 +34,22 @@ const Cards = (props) => {
   if (props.holeCards.length === 0) {
     return null;
   }
+
+  var rank0 = '';
+  var suit0 = '';
+  var rank1 = '';
+  var suit1 = '';
+  if (props.player === props.myPlayer || props.showHands) {
+    rank0 = props.holeCards[0].rank;
+    suit0 = props.holeCards[0].suit;
+    rank1 = props.holeCards[1].rank;
+    suit1 = props.holeCards[1].suit;
+  }
+
   return (
     <div>
-      <Card suit={props.holeCards[0].suit} face={props.holeCards[0].rank} style={{ position: 'absolute', left: '0%', top: '-150%', backgroundColor: 'purple', height: '10vw', width: '7.5vw' }} />
-      <Card suit={props.holeCards[1].suit} face={props.holeCards[1].rank} style={{ position: 'absolute', left: '50%', top: '-150%', backgroundColor: 'purple', height: '10vw', width: '7.5vw' }} />]
+      <Card suit={suit0} face={rank0} style={{ position: 'absolute', left: '10%', top: '-220%', height: '10vw', width: '7.5vw' }} />
+      <Card suit={suit1} face={rank1} style={{ position: 'absolute', left: '50%', top: '-220%', height: '10vw', width: '7.5vw' }} />
     </div>
   );
 }
@@ -90,13 +102,13 @@ const Seat = (props) => {
           null
         }
       </Paper>
-      {
-        props.player !== undefined && props.player.username === props.username
-        ?
-        <Cards holeCards={props.player.hole_cards} cardStyle={classes.cardStyle} />
-        :
-        null
-      }
+      <Cards 
+        holeCards={props.player.hole_cards} 
+        cardStyle={classes.cardStyle} 
+        player={props.player}
+        myPlayer={props.myPlayer}
+        showHands={props.showHands}
+      />
     </div>
   );
 

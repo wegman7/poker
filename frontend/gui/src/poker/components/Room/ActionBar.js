@@ -292,7 +292,7 @@ const ActionBar = (props) => {
         max={maxBet}
       />
       <Increment incrementStyle={classes.increment} handleInc={handleInc} />
-      <Fold foldStyle={classes.fold} makeAction={makeAction} />
+      {noCurrBet ? null : <Fold foldStyle={classes.fold} makeAction={makeAction} />}
       {
         noCurrBet
         ?

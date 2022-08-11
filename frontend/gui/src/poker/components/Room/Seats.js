@@ -69,6 +69,7 @@ const Seats = (props) => {
           handleOpenBuyinBox={handleOpenBuyinBox}
           player={players[index]}
           myPlayer={props.gameState.players[props.user.username]}
+          showHands={props.gameState.show_hands}
         />
       ))}
       {seatChips.map((seat, index) => (

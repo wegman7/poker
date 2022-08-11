@@ -12,13 +12,15 @@ const useStyles = makeStyles((theme) => ({
 const Chips = (props) => {
   const classes = useStyles();
 
-  if (props.player === undefined || props.player.chips_in_pot === 0) {
+  if (props.player === undefined) {
     return null;
   }
 
   return (
     <div className={`${props.chipStyle} ${props.baseStyle}`}>
-      {props.player.chips_in_pot}
+      {props.player.dealer ? <div style={{ textAlign: 'right' }}>Dealer</div> : <br />}
+      
+      {props.player.chips_in_pot === 0 ? null : <div>{props.player.chips_in_pot}</div>}
     </div>
   );
 }

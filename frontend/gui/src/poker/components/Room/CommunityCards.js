@@ -1,10 +1,15 @@
 import React from 'react';
 import { makeStyles } from '@material-ui/core/styles';
+import { Card } from 'react-casino';
 
 const useStyles = makeStyles((theme) => ({
   cards: {
-    left: '50%',
-    top: '40%',
+    position: 'absolute',
+    // fontSize: '1.3vw',
+    // width: '18%',
+    // height: '12%',
+    left: '31%',
+    top: '25%',
   },
 }));
 
@@ -16,8 +21,10 @@ const CommunityCards = (props) => {
   }
 
   return (
-    <div className={`${classes.cards} ${props.baseStyle}`}>
-      {props.communityCards[0].rank}{props.communityCards[0].suit} {props.communityCards[1].rank}{props.communityCards[1].suit} {props.communityCards[2].rank}{props.communityCards[2].suit}
+    <div className={classes.cards}>
+      {props.communityCards.map((card) => (
+        <Card suit={card.suit} face={card.rank} style={{ height: '10vw', width: '7.5vw' }} />
+      ))}
     </div>
   );
 }
