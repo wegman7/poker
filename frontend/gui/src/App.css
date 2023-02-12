@@ -10,7 +10,7 @@
   background: rgba(255, 255, 255, 0.2);
   margin: 16px 24px 16px 0;
   float: left;
-}
+} */
 
 .pokerchip{
   margin:.25em;
@@ -59,7 +59,7 @@
     -6px 6px 10px #555;
 }
 
-[type=radio] { 
+/* [type=radio] { 
   position: absolute;
   opacity: 0;
   width: 0;

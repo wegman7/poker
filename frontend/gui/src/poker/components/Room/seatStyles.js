@@ -6,7 +6,15 @@ const seatStyles = makeStyles((theme) => ({
     fontSize: '1.3vw',
     width: '18%',
     height: '8%',
-    // backgroundColor: 'blue'
+    backgroundColor: 'blue'
+  },
+
+  chipBase: {
+    position: 'absolute',
+    fontSize: '1.3vw',
+    width: '18%',
+    height: '8%',
+    backgroundColor: 'purple'
   },
 
   zero: {
@@ -38,10 +46,10 @@ const seatStyles = makeStyles((theme) => ({
   },
 
   chipsZero: {
-    top: '10%', left: '60%'
+    top: '15%', left: '60%'
   },
   chipsOne: {
-    top: '0%', left: '85%'
+    top: '15%', left: '85%'
   },
   chipsTwo: {
     top: '49%', left: '87%'
@@ -59,10 +67,10 @@ const seatStyles = makeStyles((theme) => ({
     top: '49%', left: '0%'
   },
   chipsSeven: {
-    top: '0%', left: '2%'
+    top: '15%', left: '2%'
   },
   chipsEight: {
-    top: '10%', left: '30%'
+    top: '15%', left: '30%'
   },
 
   buyin: {

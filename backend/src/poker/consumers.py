@@ -12,7 +12,6 @@ from rest_framework.exceptions import AuthenticationFailed
 
 from .models import Contact, Message, Room
 
-
 class ChatConsumer(WebsocketConsumer):
 
     def connect(self):
@@ -98,8 +97,6 @@ class ChatConsumer(WebsocketConsumer):
         pass
 
 from .game_engine import GameEngine
-
-TIME_BANK = 30
 
 class PlayerConsumer(AsyncWebsocketConsumer):
     groups = ["broadcast"]

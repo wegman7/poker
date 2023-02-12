@@ -77,7 +77,7 @@ const Seats = (props) => {
           key={index}
           seatNumber={index}
           chipStyle={classes[seat]} 
-          baseStyle={classes.base} 
+          baseStyle={classes.chipBase} 
           player={players[index]}
           myPlayer={props.gameState.players[props.user.username]}
         />
