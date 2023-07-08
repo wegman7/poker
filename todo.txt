@@ -1,0 +1,26 @@
+i think we can go ahead and start with the conditional rendering for some of the components like sitbar and actionbar so we can start testing a little better.
+there also might be some weird stuff going on with the django threads, i might need to look into that at some point
+
+we can start building Seat and working on conditional rendering of the ActionBar, but I'm not sure if we should spend too much time on the aeshetics yet.
+we still need to add a text box to addChips at some point but it's not a priority.
+
+the original plan was to make all the ui elements first, then focus on logic. this might be a better approach
+
+i think we can just put the action bar insite Seat.js. then we'll probably want a different component to render the chips. 
+
+ - i think what we can basically do is basically split up the methods we want to put pauses in with a method_after_pause() that will trigger after some timer. i think the timer and flags that we'll need can be gameEngine variables rather than gameState variables, because they don't really relate to game stated.
+
+ - we've just added a convenience method for pausing the game, this will be a lot cleaner
+ - to solve the problem of how do we handle pausing the game inside the showdown method, where we need to pause inside every for loop. maybe we could make game_pause_resume a list of methods rather than just one? this way we can fire off the method multiple times, with potentially pauses after each method call
+
+ - i think the payout method is working, but we need to make sure it's paying out the chips, then pausing like it's supposed to. also need to test split pots / multiway pots
+
+ - seems to be working! things i'd like to still do:
+  1. lots of ui stuff including multiple tables at once, actual chip stacks, maybe clean up the mess of useCallback
+  2. clean up a lot of the backend stuff like the social media library stuff, maybe switch to auth0 at some point
+  3. add better hand histories and features such as game summary stats. figure out what direction the app needs to go to figure out what features to add (eg more user profile stuff (lots of persistent db storage probably), or more features that don't require persistent storage)
+  4. go ahead and create a server and try to create a seemless ci/cd process that maybe involves docker and aws lambda
+
+ - fix the bug of the weird chat connection holding up the other windows and then sometimes causing exception. could it be caused by two tabs in safari??
+
+ - find css import for chips!
